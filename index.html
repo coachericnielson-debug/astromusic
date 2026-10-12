@@ -267,6 +267,7 @@ body{margin:0}
         <dt><span class="sw" style="background:var(--band)"></span></dt><dd>The shadow: the stretch of sky the retrograde will cover, entered before it starts and left after it ends.</dd>
         <dt>fermata</dt><dd>The hold sign marks a station, where the planet stands still before turning.</dd>
         <dt><span class="sw" style="background:var(--cool)"></span> <span class="sw" style="background:var(--warm)"></span></dt><dd>Harmony rises above the line in teal (trines and sextiles). Tension hangs below in red (squares and oppositions). Gold is a conjunction, a meeting.</dd>
+        <dt>lighting up</dt><dd>While an aspect is in orb, the planet's staff glows in its color (teal for trines and sextiles, red for squares and oppositions, gold for conjunctions), brightest at exact. On the wheel its line glows and pulses. In the week and month views a ring marks the exact moment with the point it hits.</dd>
         <dt>contact lanes</dt><dd>Each lane fades in as a transit approaches your planet and fades out as it leaves. A ring marks the exact moment. Three swells in one lane is a retrograde passing over the same point three times.</dd>
       </dl>
     </div>
@@ -276,7 +277,7 @@ body{margin:0}
         <dt>planet voices</dt><dd>Tap a planet in the Voices row, or its name on the score, to hear it alone. Each planet is its own instrument in its own place left to right: the Sun a horn, the Moon a flute, Mercury quick ticks, Venus glass bells, Mars a growl, Jupiter an organ, Saturn a low cello, Uranus an electric trill, Neptune a haze, Pluto a heartbeat. Its pitch follows its speed, the way Kepler wrote each planet a melody in <i>Harmonices Mundi</i> (1619). Fast is high. Mercury's ticks, Mars's growl and Pluto's heartbeat also speed up and slow down with the planet. A station slides down an octave. Retrograde sounds muffled.</dd>
         <dt>aspect chords</dt><dd>Each contact plays two tones set to its interval. Trines and sextiles are pure, sweet intervals (a fifth, a sixth). Squares and oppositions are buzzy and rub (a tritone, a minor ninth). Conjunctions are two voices on one note. Easy aspects start with a slow wobble that calms as they close and locks into harmony at exact. Hard aspects go the other way: the closer they get, the faster and harsher the rub, with a clashing half step added, and nothing resolves.</dd>
         <dt>major/minor bed</dt><dd>A soft chord sits under everything. It is major while harmony leads, turns minor as tension grows, and goes diminished with a clashing half step when tension takes over. You can hear a hard week coming before you read about it.</dd>
-        <dt>bells</dt><dd>Bells ring when a contact is exact. An easy aspect rings a rising major chord that sounds finished. A hard aspect strikes three clashing bells at once that hang in the air unresolved. Deep gongs mark stations, and bright gold bells ring when two planets meet in the sky or the Moon turns new or full.</dd>
+        <dt>bells</dt><dd>Every aspect in orb keeps ringing for as long as it is felt, softly at first and quicker and louder as it closes. Easy aspects ring two sweet notes, hard ones two clashing notes. At exact the big bells ring. An easy aspect rings a rising major chord that sounds finished. A hard aspect strikes three clashing bells at once that hang in the air unresolved. Deep gongs mark stations, and bright gold bells ring when two planets meet in the sky or the Moon turns new or full.</dd>
       </dl>
     </div>
   </section>
@@ -387,6 +388,7 @@ function savePeople(p){ try { localStorage.setItem('skyscore.people.v2', JSON.st
 const firstName = p => (p.name || 'Someone').trim().split(/\s+/)[0];
 const label = p => firstName(p) + (p.sample ? ' (sample)' : '');
 
+const KCODE = {soft:1, hard:2, fusion:3, mixed:3}; const KNAME = ['', 'soft', 'hard', 'fusion'];
 /* ---------- year model ---------- */
 const YT = {Mars:{w:.55,orb:2.5}, Jupiter:{w:.7,orb:3}, Saturn:{w:1,orb:3}, Uranus:{w:.9,orb:3}, Neptune:{w:.8,orb:3}, Pluto:{w:.9,orb:3}};
 const YN = {Sun:1, Moon:1, Mercury:.7, Venus:.9, Mars:.9, Jupiter:.6, Saturn:.7};
@@ -444,13 +446,15 @@ function buildYear(person, startMs){
       }
     }
   }
+  const glow = {}; for (const ln of lanes.values()){ const g = glow[ln.t] || (glow[ln.t] = {v: new Float32Array(N+1), k: new Int8Array(N+1)});
+    for (let i = 0; i <= N; i++) if (ln.arr[i] > g.v[i]){ g.v[i] = ln.arr[i]; g.k[i] = KCODE[ln.asp.kind]; } }
   let laneList = [...lanes.values()].filter(l => l.peak > 0.12);
   laneList.sort((p, q) => q.peak * q.w - p.peak * p.w); laneList = laneList.slice(0, 16);
   laneList.sort((p, q) => p.first - q.first);
   const endMs = startMs + N * DAY;
   const inWin = e => e.ms >= startMs && e.ms <= endMs;
   const events = [...exacts.filter(e => laneList.some(l => l.t === e.t && l.n === e.n && l.asp.k === e.asp.k)), ...stations.filter(inWin), ...meets].filter(inWin).sort((p, q) => p.ms - q.ms);
-  return {kind:'year', person, startMs, endMs, N, S, natal, H, T, F, lanes: laneList, exacts, stations, shadows, ingresses, meets, events};
+  return {kind:'year', glow, person, startMs, endMs, N, S, natal, H, T, F, lanes: laneList, exacts, stations, shadows, ingresses, meets, events};
 }
 
 /* ---------- planner model (week and month) ---------- */
@@ -517,7 +521,7 @@ function buildPlanner(subj, startMs, endMs, PER, moonBells){
     inner = targets.map(t => ({b: t.b, lon: t.lon}));
   }
   const H = {}, T = {}; for (const [k] of staves){ H[k] = new Float32Array(n); T[k] = new Float32Array(n); }
-  const dayC = Array.from({length: days}, () => new Map()); const exacts = []; const slowPeak = new Map();
+  const dayC = Array.from({length: days}, () => new Map()); const exacts = []; const slowPeak = new Map(); const glow = {};
   for (const t in CT){ const L = S.lon[t];
     for (const tg of targets){
       for (let i = 0; i < n; i++){
@@ -525,6 +529,7 @@ function buildPlanner(subj, startMs, endMs, PER, moonBells){
         const raw = CT[t].w * tg.w * bump(b.orb, CT[t].orb); const v = raw * DW[t];
         if (SLOW.includes(t)){ const sk = t + '|' + tg.own + '|' + tg.b + '|' + b.asp.k; const sp = slowPeak.get(sk); if (!sp || sp.raw < raw) slowPeak.set(sk, {t, tg, asp:b.asp, raw}); }
         const kind = b.asp.kind === 'fusion' ? (HARSH.has(t) ? 'hard' : (t === 'Neptune' ? 'mixed' : 'soft')) : b.asp.kind;
+        { const g = glow[t] || (glow[t] = {v: new Float32Array(n), k: new Int8Array(n)}); const bv = bump(b.orb, CT[t].orb); if (bv > g.v[i]){ g.v[i] = bv; g.k[i] = KCODE[kind]; } }
         if (kind === 'soft') H[tg.own][i] += v; else if (kind === 'hard') T[tg.own][i] += v; else { H[tg.own][i] += v/2; T[tg.own][i] += v/2; }
         const day = Math.min(days - 1, Math.floor(i / PER)); const key = t + '|' + tg.own + '|' + tg.b + '|' + b.asp.k;
         const prev = dayC[day].get(key); if (!prev || prev.v < v) dayC[day].set(key, {t, tg, asp:b.asp, kind, v, orb:b.orb});
@@ -558,7 +563,7 @@ function buildPlanner(subj, startMs, endMs, PER, moonBells){
   exacts.sort((p, q) => p.ms - q.ms);
   const backdrop = [...slowPeak.values()].filter(x => x.raw > .3).sort((p, q) => q.raw - p.raw).slice(0, 4);
   const events = [...exacts, ...phases].sort((p, q) => p.ms - q.ms);
-  return {kind:'plan', subj, pair, pA:P.A, pB:P.B, startMs, endMs, days, PER, n, S, H, T, targets, staves, inner, dayInfo, exacts, phases, backdrop, events};
+  return {kind:'plan', glow, subj, pair, pA:P.A, pB:P.B, startMs, endMs, days, PER, n, S, H, T, targets, staves, inner, dayInfo, exacts, phases, backdrop, events};
 }
 function ownerWord(tg, c){ if (tg.own === 'shared') return 'your shared'; if (!c.pair) return 'your'; return firstName(tg.own === 'A' ? c.pA : c.pB) + '’s'; }
 function planSentence(t, asp, tg, c){ return `${t} ${asp.verb} ${ownerWord(tg, c)} ${tg.b}`; }
@@ -603,7 +608,7 @@ const state = {
   view:'year', people: loadPeople(), chartOf:'A', yearStart: monthOf(now), monthStart: monthOf(now),
   ms: now, playing:false, speed:'normal', layers:{voices:true, chords:true, bells:true, mood:true}, year:null, plan:null, selDay:null, solo:null, holding:false, stopAt:null, subject:'A', weekStart: mondayOf(now)
 };
-const RATES = {year:{slow:3, normal:9, fast:24}, week:{slow:.06, normal:.12, fast:.3}, month:{slow:.1, normal:.2, fast:.6}};
+const RATES = {year:{slow:3, normal:9, fast:24}, week:{slow:.05, normal:.1, fast:.25}, month:{slow:.05, normal:.1, fast:.3}};
 const DAYRATE = {slow:1/40, normal:1/20, fast:1/8};
 const model = () => state.view === 'year' ? state.year : state.plan;
 
@@ -619,8 +624,8 @@ const kindColor = k => k === 'soft' ? TK.cool : (k === 'hard' ? TK.warm : TK.gol
 
 /* ---------- canvas helpers ---------- */
 const base = $('#base'), over = $('#over'), dial = $('#dial');
-over.addEventListener('pointermove', e => { if (dragging || state.view !== 'year' || !LAY) return; const r = over.getBoundingClientRect(); const px = e.clientX - r.left, py = e.clientY - r.top;
-  over.style.cursor = (px < LAY.L - 6 && py >= LAY.rTop && py < LAY.rTop + ROWS.length * LAY.rowH) ? 'pointer' : 'ew-resize'; });
+over.addEventListener('pointermove', e => { if (dragging || !LAY) return; const r = over.getBoundingClientRect(); const px = e.clientX - r.left, py = e.clientY - r.top;
+  over.style.cursor = (LAY.rows && px < LAY.L - 6 && py >= LAY.rTop && py < LAY.rTop + LAY.rows.length * LAY.rowH) ? 'pointer' : 'ew-resize'; });
 function sizeCanvas(cv, w, h){
   const dpr = Math.min(2, window.devicePixelRatio || 1);
   cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.width = w + 'px'; cv.style.height = h + 'px';
@@ -679,40 +684,7 @@ function drawYear(){
     ctx.beginPath(); ctx.moveTo(x, wy - 5); ctx.lineTo(x + 5, wy); ctx.lineTo(x, wy + 5); ctx.lineTo(x - 5, wy); ctx.closePath(); ctx.fill();
     ctx.font = `12px ${GLYPHF}`; ctx.textAlign = 'center'; ctx.fillText(glyph(e.a) + '☌' + VS + glyph(e.b), x, lay.wTop + 8); ctx.textAlign = 'left';
   }
-  // planet staves
-  ROWS.forEach((b, ri) => {
-    const cy = lay.rTop + ri * lay.rowH + lay.rowH / 2, col = TK[b], pmax = PLANETS[b].max;
-    for (const s of m.shadows) if (s.b === b){
-      const x0 = Math.max(lay.L, X(s.start)), x1 = Math.min(lay.L + plotW, X(s.end));
-      if (x1 > x0){ ctx.fillStyle = TK.band; ctx.fillRect(x0, cy - 17, x1 - x0, 34); }
-    }
-    ctx.strokeStyle = TK.rule; for (let k = -2; k <= 2; k++) line(ctx, lay.L, Math.round(cy + k * 6) + .5, lay.L + plotW, Math.round(cy + k * 6) + .5);
-    const retroRuns = []; let run = null;
-    for (let x = 0; x < plotW; x++){
-      const ms = m.startMs + (x + .5) / plotW * (m.endMs - m.startMs); const s = sample(m.S, b, ms).spd;
-      const a = Math.min(1, Math.abs(s) / pmax); const th = 1.4 + 15 * Math.pow(a, .65);
-      if (s >= 0){ ctx.fillStyle = col; ctx.globalAlpha = .28 + .72 * a; if (run){ retroRuns.push(run); run = null; } }
-      else { ctx.fillStyle = TK.retro; ctx.globalAlpha = .5 + .5 * a; if (!run) run = [x, x]; else run[1] = x; }
-      ctx.fillRect(lay.L + x, cy - th / 2, 1, th);
-    }
-    if (run) retroRuns.push(run); ctx.globalAlpha = 1;
-    ctx.setLineDash([2, 3]); ctx.strokeStyle = col; ctx.lineWidth = 1.2;
-    for (const [a, z] of retroRuns) line(ctx, lay.L + a, cy + .5, lay.L + z + 1, cy + .5);
-    ctx.setLineDash([]); ctx.lineWidth = 1;
-    for (const st of m.stations) if (st.b === b && st.ms >= m.startMs && st.ms <= m.endMs){
-      const x = X(st.ms); fermata(ctx, x, cy - 21, TK.ink);
-      ctx.font = `9.5px ${MONOF}`; ctx.fillStyle = TK.ink; const txt = (st.dir === 'R' ? 'Rx ' : 'D ') + shortDate(st.ms); const tw = ctx.measureText(txt).width;
-      const left = st.dir === 'R' && x - 9 - tw > lay.L; const rightEdge = x + 9 + tw > lay.L + plotW;
-      ctx.fillText(txt, (left || rightEdge) ? x - 9 - tw : x + 9, cy - 16);
-    }
-    ctx.font = `10px ${GLYPHF}`; ctx.fillStyle = TK.muted; ctx.textAlign = 'center';
-    for (const ing of m.ingresses) if (ing.b === b){ const x = X(ing.ms); ctx.fillText(SIGNS[ing.sign] + VS, x, cy + 18); }
-    ctx.textAlign = 'left';
-    ctx.font = `17px ${GLYPHF}`; ctx.fillStyle = col; ctx.fillText(glyph(b), 14, cy);
-    ctx.font = `14px ${BODYF}`; ctx.fillStyle = TK.ink; ctx.fillText(b, 36, cy - 1);
-    const s0 = sample(m.S, b, m.startMs);
-    ctx.font = `10px ${MONOF}`; ctx.fillStyle = TK.muted; ctx.fillText(`${Math.floor(s0.lon % 30)}° ${SIGN_NAMES[Math.floor(s0.lon / 30)].slice(0,3)}`, 36, cy + 13);
-  });
+  drawPlanetRows(ctx, lay, m, ROWS);
   // contact lanes
   const lh = lay.lTop + lay.lHead / 2 + 2;
   ctx.font = `italic 15px ${BODYF}`; ctx.fillStyle = TK.ink; ctx.fillText('Contacts', 14, lh);
@@ -737,11 +709,66 @@ function drawYear(){
   });
 }
 
+/* ---------- planet staves (shared by every view) ---------- */
+function drawPlanetRows(ctx, lay, m, bodies){
+  const X = lay.X, plotW = lay.plotW, span = m.endMs - m.startMs; lay.rows = bodies;
+  const msAt = x => m.startMs + (x + .5) / plotW * span;
+  bodies.forEach((b, ri) => {
+    const cy = lay.rTop + ri * lay.rowH + lay.rowH / 2, col = TK[b], pmax = PLANETS[b].max;
+    if (m.shadows) for (const s of m.shadows) if (s.b === b){
+      const x0 = Math.max(lay.L, X(s.start)), x1 = Math.min(lay.L + plotW, X(s.end));
+      if (x1 > x0){ ctx.fillStyle = TK.band; ctx.fillRect(x0, cy - 17, x1 - x0, 34); }
+    }
+    ctx.strokeStyle = TK.rule; for (let k = -2; k <= 2; k++) line(ctx, lay.L, Math.round(cy + k * 6) + .5, lay.L + plotW, Math.round(cy + k * 6) + .5);
+    /* aspects light the staff up while they are in orb, brightest at exact */
+    const g = m.glow && m.glow[b];
+    if (g){ const L = g.v.length;
+      for (let x = 0; x < plotW; x++){ const f = (x + .5) / plotW * (L - 1); const v = lerpArr(g.v, f); if (v < .03) continue;
+        ctx.fillStyle = kindColor(KNAME[g.k[Math.round(f)]] || 'fusion'); ctx.globalAlpha = .55 * Math.pow(v, 1.2); ctx.fillRect(lay.L + x, cy - 17, 1, 34); }
+      ctx.globalAlpha = 1; }
+    const retroRuns = []; let run = null, prevS = null, prevSign = null; const stationsHere = [], ingressHere = [];
+    for (let x = 0; x < plotW; x++){
+      const smp = sample(m.S, b, msAt(x)), s = smp.spd;
+      if (prevS !== null && Math.sign(prevS) !== Math.sign(s) && !m.stations) stationsHere.push({x, dir: s < 0 ? 'R' : 'D', ms: msAt(x)});
+      const sg = Math.floor(smp.lon / 30); if (prevSign !== null && sg !== prevSign && !m.ingresses) ingressHere.push({x, sign: sg});
+      prevS = s; prevSign = sg;
+      const a = Math.min(1, Math.abs(s) / pmax); const th = 1.4 + 15 * Math.pow(a, .65);
+      if (s >= 0){ ctx.fillStyle = col; ctx.globalAlpha = .28 + .72 * a; if (run){ retroRuns.push(run); run = null; } }
+      else { ctx.fillStyle = TK.retro; ctx.globalAlpha = .5 + .5 * a; if (!run) run = [x, x]; else run[1] = x; }
+      ctx.fillRect(lay.L + x, cy - th / 2, 1, th);
+    }
+    if (run) retroRuns.push(run); ctx.globalAlpha = 1;
+    ctx.setLineDash([2, 3]); ctx.strokeStyle = col; ctx.lineWidth = 1.2;
+    for (const [a, z] of retroRuns) line(ctx, lay.L + a, cy + .5, lay.L + z + 1, cy + .5);
+    ctx.setLineDash([]); ctx.lineWidth = 1;
+    const sts = m.stations ? m.stations.filter(st => st.b === b && st.ms >= m.startMs && st.ms <= m.endMs).map(st => ({x: X(st.ms) - lay.L, dir: st.dir, ms: st.ms})) : stationsHere;
+    for (const st of sts){
+      const x = lay.L + st.x; fermata(ctx, x, cy - 21, TK.ink);
+      ctx.font = `9.5px ${MONOF}`; ctx.fillStyle = TK.ink; const txt = (st.dir === 'R' ? 'Rx ' : 'D ') + shortDate(st.ms); const tw = ctx.measureText(txt).width;
+      const left = st.dir === 'R' && x - 9 - tw > lay.L; const rightEdge = x + 9 + tw > lay.L + plotW;
+      ctx.fillText(txt, (left || rightEdge) ? x - 9 - tw : x + 9, cy - 16);
+    }
+    ctx.font = `10px ${GLYPHF}`; ctx.fillStyle = TK.muted; ctx.textAlign = 'center';
+    if (m.ingresses){ for (const ing of m.ingresses) if (ing.b === b) ctx.fillText(SIGNS[ing.sign] + VS, X(ing.ms), cy + 18); }
+    else for (const ing of ingressHere) ctx.fillText(SIGNS[ing.sign] + VS, lay.L + ing.x, cy + 18);
+    /* exact hits: a ring on the staff with the point it hits */
+    if (m.kind === 'plan') for (const e of m.exacts) if (e.t === b){
+      const x = X(e.ms); ctx.beginPath(); ctx.arc(x, cy, 4.2, 0, Math.PI * 2); ctx.fillStyle = TK.panel; ctx.fill(); ctx.strokeStyle = kindColor(e.kind); ctx.lineWidth = 1.8; ctx.stroke(); ctx.lineWidth = 1;
+      if (b !== 'Moon' || lay.plotW / m.days > 60){ ctx.font = `10px ${GLYPHF}`; ctx.fillStyle = kindColor(e.kind); ctx.fillText(e.asp.g + VS + glyph(e.tg.b), x, cy - 11); }
+    }
+    ctx.textAlign = 'left';
+    ctx.font = `17px ${GLYPHF}`; ctx.fillStyle = col; ctx.fillText(glyph(b), 14, cy);
+    ctx.font = `14px ${BODYF}`; ctx.fillStyle = TK.ink; ctx.fillText(b, 36, cy - 1);
+    const s0 = sample(m.S, b, m.startMs);
+    ctx.font = `10px ${MONOF}`; ctx.fillStyle = TK.muted; ctx.fillText(`${Math.floor(s0.lon % 30)}° ${SIGN_NAMES[Math.floor(s0.lon / 30)].slice(0,3)}`, 36, cy + 13);
+  });
+}
+
 /* ---------- draw: week and month ---------- */
 function drawPlanner(){
   const c = state.plan; const wk = state.view === 'week'; const W = canvasWidth(wk ? 720 : 680);
   const single = c.staves.length === 1;
-  const lay = {L:136, R:18, axisH:30, rowH: single ? 120 : 64}; lay.H = lay.axisH + c.staves.length * lay.rowH + 24; lay.W = W; lay.plotW = W - lay.L - lay.R;
+  const lay = {L:136, R:18, axisH:30, rowH: single ? 110 : 60}; const stH = c.staves.length * lay.rowH; lay.moonY = lay.axisH + stH + 12; lay.rTop = lay.moonY + 16; lay.prow = 44; lay.H = lay.rTop + ALL.length * lay.prow + 8; lay.W = W; lay.plotW = W - lay.L - lay.R;
   lay.X = ms => lay.L + (ms - c.startMs) / (c.endMs - c.startMs) * lay.plotW; LAY = lay;
   const ctx = sizeCanvas(base, W, lay.H); sizeCanvas(over, W, lay.H);
   ctx.fillStyle = TK.panel; ctx.fillRect(0, 0, W, lay.H);
@@ -750,14 +777,14 @@ function drawPlanner(){
     const ms = dayStart(c, d); const x = Math.round(X(ms)) + .5;
     if (d < c.days){
       const dt = new Date(ms), wd = dt.getDay();
-      if (wd === 0 || wd === 6){ ctx.fillStyle = TK.band; ctx.globalAlpha = .45; ctx.fillRect(x, lay.axisH, dayW, lay.H - lay.axisH - 20); ctx.globalAlpha = 1; }
+      if (wd === 0 || wd === 6){ ctx.fillStyle = TK.band; ctx.globalAlpha = .45; ctx.fillRect(x, lay.axisH, dayW, lay.H - lay.axisH - 8); ctx.globalAlpha = 1; }
       ctx.fillStyle = TK.muted; ctx.textAlign = 'center';
       if (wk){ ctx.font = `italic 13px ${BODYF}`; ctx.fillText(dt.toLocaleDateString('en-GB', {weekday:'short', day:'numeric'}), x + dayW / 2, lay.axisH / 2 + 1);
-        ctx.strokeStyle = TK.rule; ctx.globalAlpha = .35; for (const hr of [6, 12, 18]){ const hx = Math.round(X(ms + hr * HOUR)) + .5; line(ctx, hx, lay.axisH, hx, lay.H - 20); } ctx.globalAlpha = 1; }
+        ctx.strokeStyle = TK.rule; ctx.globalAlpha = .35; for (const hr of [6, 12, 18]){ const hx = Math.round(X(ms + hr * HOUR)) + .5; line(ctx, hx, lay.axisH, hx, lay.H - 8); } ctx.globalAlpha = 1; }
       else if (dayW >= 15 || d % 2 === 0){ ctx.font = `10px ${MONOF}`; ctx.fillText(String(d + 1), x + dayW / 2, lay.axisH / 2 + 2); }
       ctx.textAlign = 'left';
     }
-    ctx.strokeStyle = TK.rule; ctx.globalAlpha = (d === 0 || d === c.days) ? 1 : .7; line(ctx, x, lay.axisH - 4, x, lay.H - 18); ctx.globalAlpha = 1;
+    ctx.strokeStyle = TK.rule; ctx.globalAlpha = (d === 0 || d === c.days) ? 1 : .7; line(ctx, x, lay.axisH - 4, x, lay.H - 6); ctx.globalAlpha = 1;
   }
   c.staves.forEach(([key, name], si) => {
     const cy = lay.axisH + si * lay.rowH + lay.rowH / 2; const amp = lay.rowH / 2 - 6;
@@ -775,12 +802,13 @@ function drawPlanner(){
       const x = X(e.ms), r = e.t === 'Moon' ? 2.6 : 3.8; ctx.beginPath(); ctx.arc(x, cy, r, 0, Math.PI * 2); ctx.fillStyle = TK.panel; ctx.fill(); ctx.strokeStyle = kindColor(e.kind); ctx.lineWidth = 1.6; ctx.stroke(); ctx.lineWidth = 1;
     }
   });
-  const my = lay.H - 10; ctx.font = `10px ${MONOF}`; ctx.fillStyle = TK.muted; ctx.fillText('moon', 14, my);
+  const my = lay.moonY; ctx.font = `10px ${MONOF}`; ctx.fillStyle = TK.muted; ctx.fillText('moon', 14, my);
   for (const p of c.phases){ const x = X(p.ms); ctx.strokeStyle = TK.gold; ctx.fillStyle = TK.gold; ctx.lineWidth = 1.3;
     ctx.beginPath(); ctx.arc(x, my, 5, 0, Math.PI * 2); ctx.stroke();
     if (p.name === 'New Moon'){ ctx.beginPath(); ctx.arc(x, my, 5, 0, Math.PI * 2); ctx.fill(); }
     else if (p.name !== 'Full Moon'){ ctx.beginPath(); ctx.arc(x, my, 5, -Math.PI / 2, Math.PI / 2, p.name === 'Last quarter'); ctx.closePath(); ctx.fill(); }
     ctx.lineWidth = 1; ctx.fillStyle = TK.muted; ctx.fillText(p.name.replace(' Moon', '').replace(' quarter', ' qtr'), x + 8, my); }
+  const rowH0 = lay.rowH; lay.rowH = lay.prow; drawPlanetRows(ctx, lay, c, ALL); lay.staveH = rowH0;
 }
 
 /* ---------- overlay / playhead ---------- */
@@ -790,8 +818,8 @@ function drawOver(){
   const m = model(); const tx = LAY.X(now);
   if (now >= m.startMs && now <= m.endMs){ ctx.strokeStyle = TK.accent; ctx.globalAlpha = .45; ctx.setLineDash([3, 3]); line(ctx, Math.round(tx) + .5, LAY.axisH - 4, Math.round(tx) + .5, LAY.H - 6); ctx.setLineDash([]); ctx.globalAlpha = 1;
     ctx.font = `10px ${MONOF}`; ctx.fillStyle = TK.accent; ctx.fillText('today', tx + 4, LAY.H - 12); }
-  if (state.view === 'year' && state.solo && ROWS.includes(state.solo)){
-    const ri = ROWS.indexOf(state.solo), y = LAY.rTop + ri * LAY.rowH; ctx.fillStyle = TK.accent; ctx.globalAlpha = .1; ctx.fillRect(4, y + 1, LAY.W - 8, LAY.rowH - 2); ctx.globalAlpha = .7; ctx.strokeStyle = TK.accent; ctx.strokeRect(4.5, y + 1.5, LAY.W - 9, LAY.rowH - 3); ctx.globalAlpha = 1;
+  if (LAY.rows && state.solo && LAY.rows.includes(state.solo)){
+    const ri = LAY.rows.indexOf(state.solo), y = LAY.rTop + ri * LAY.rowH; ctx.fillStyle = TK.accent; ctx.globalAlpha = .1; ctx.fillRect(4, y + 1, LAY.W - 8, LAY.rowH - 2); ctx.globalAlpha = .7; ctx.strokeStyle = TK.accent; ctx.strokeRect(4.5, y + 1.5, LAY.W - 9, LAY.rowH - 3); ctx.globalAlpha = 1;
     ctx.font = `10px ${MONOF}`; ctx.fillStyle = TK.accent; ctx.fillText('solo', 104, y + LAY.rowH / 2 + 13);
   }
   const x = Math.round(LAY.X(state.ms)) + .5;
@@ -802,7 +830,7 @@ function msFromX(px){ const m = model(); return clamp(m.startMs + (px - LAY.L) /
 let dragging = false;
 over.addEventListener('pointerdown', e => {
   const r = over.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top;
-  if (state.view === 'year' && px < LAY.L - 6 && py >= LAY.rTop && py < LAY.rTop + ROWS.length * LAY.rowH){ const b = ROWS[Math.floor((py - LAY.rTop) / LAY.rowH)]; setSolo(b === state.solo ? null : b); return; }
+  if (LAY.rows && px < LAY.L - 6 && py >= LAY.rTop && py < LAY.rTop + LAY.rows.length * LAY.rowH){ const b = LAY.rows[Math.floor((py - LAY.rTop) / LAY.rowH)]; setSolo(b === state.solo ? null : b); return; }
   dragging = true; over.setPointerCapture(e.pointerId); scrub(e); });
 over.addEventListener('pointermove', e => { if (dragging) scrub(e); });
 over.addEventListener('pointerup', () => { dragging = false; });
@@ -821,8 +849,11 @@ function drawDial(transits, inner, links, innerLabel){
   for (const r of [R, R - 20, 62]){ ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke(); }
   for (let k = 0; k < 12; k++){ const [x0, y0] = P(R - 20, k * 30), [x1, y1] = P(R, k * 30); line(ctx, x0, y0, x1, y1);
     const [gx, gy] = P(R - 10, k * 30 + 15); ctx.font = `11px ${GLYPHF}`; ctx.fillStyle = TK.muted; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(SIGNS[k] + VS, gx, gy); }
-  for (const l of links){ const [x0, y0] = P(62, l.a), [x1, y1] = P(62, l.b); ctx.strokeStyle = kindColor(l.kind); ctx.globalAlpha = clamp(l.v, .15, 1); ctx.lineWidth = 1 + 1.5 * l.v; line(ctx, x0, y0, x1, y1); }
-  ctx.globalAlpha = 1; ctx.lineWidth = 1;
+  const pulse = .78 + .22 * Math.sin(performance.now() / 170);
+  for (const l of links){ const [x0, y0] = P(62, l.a), [x1, y1] = P(62, l.b); const col = kindColor(l.kind);
+    ctx.strokeStyle = col; ctx.shadowColor = col; ctx.shadowBlur = 12 * l.v; ctx.globalAlpha = clamp(l.v * pulse, .18, 1); ctx.lineWidth = 1 + 2.4 * l.v; line(ctx, x0, y0, x1, y1);
+    ctx.fillStyle = col; ctx.globalAlpha = .35 * l.v * pulse; ctx.beginPath(); ctx.arc(x1, y1, 4 + 7 * l.v, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.arc(x0, y0, 3 + 5 * l.v, 0, Math.PI * 2); ctx.fill(); }
+  ctx.shadowBlur = 0; ctx.globalAlpha = 1; ctx.lineWidth = 1;
   for (const p of inner){ const [x, y] = P(62, p.lon); ctx.fillStyle = TK.ink; ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI * 2); ctx.fill();
     const [gx, gy] = P(50, p.lon); ctx.font = `11px ${GLYPHF}`; ctx.fillStyle = p.color || TK.muted; ctx.fillText(glyph(p.b), gx, gy); }
   for (const p of transits){ const [x, y] = P(R - 20, p.lon); ctx.fillStyle = TK[p.b]; ctx.beginPath(); ctx.arc(x, y, 2.6, 0, Math.PI * 2); ctx.fill();
@@ -926,7 +957,7 @@ function renderDayDetail(){
 
 /* ---------- voices ---------- */
 const NOTES = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
-const voiceList = () => state.view === 'year' ? ROWS : ['Moon','Sun','Mercury','Venus','Mars','Jupiter','Saturn'];
+const voiceList = () => state.view === 'year' ? ROWS : ALL;
 const SPAN = {Saturn:.55, Neptune:.6, Pluto:.5};
 function freqOf(b, spd){ const r = clamp(spd / PLANETS[b].max, -.6, 1.15); return PLANETS[b].base * Math.pow(2, (SPAN[b] || .9) * (r - 1)); }
 function pitchOf(b, ms){ const s = sample(model().S, b, ms).spd; return {f: freqOf(b, s), retro: s < 0}; }
@@ -951,15 +982,15 @@ function setSolo(b){
 $('#mixer').addEventListener('click', e => { const c = e.target.closest('.chip'); if (!c) return; const b = c.dataset.b; setSolo(b && b !== state.solo ? b : null); });
 
 /* ---------- audio ---------- */
-const AU = {ctx: null, voices: {}, chords: new Map()};
+const AU = {ctx: null, voices: {}, chords: new Map(), tolls: new Map()};
 function audioInit(){
   if (AU.ctx){ if (AU.ctx.state === 'suspended') AU.ctx.resume(); return; }
   const C = AU.ctx = new (window.AudioContext || window.webkitAudioContext)();
   const comp = C.createDynamicsCompressor(); comp.threshold.value = -18; comp.connect(C.destination);
   AU.master = C.createGain(); AU.master.gain.value = .9; AU.master.connect(comp);
-  const len = Math.floor(C.sampleRate * 3.4), buf = C.createBuffer(2, len, C.sampleRate);
+  const len = Math.floor(C.sampleRate * 4.5), buf = C.createBuffer(2, len, C.sampleRate);
   for (let ch = 0; ch < 2; ch++){ const d = buf.getChannelData(ch); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.8); }
-  const verb = C.createConvolver(); verb.buffer = buf; const wet = C.createGain(); wet.gain.value = .45; verb.connect(wet); wet.connect(AU.master);
+  const verb = C.createConvolver(); verb.buffer = buf; const wet = C.createGain(); wet.gain.value = .45; verb.connect(wet); wet.connect(AU.master); AU.wet = wet;
   AU.bus = C.createGain(); AU.bus.connect(AU.master); AU.bus.connect(verb);
 }
 /* each planet is its own instrument, register and place in the stereo field */
@@ -1005,7 +1036,8 @@ function voice(b){
 function audioUpdate(ms){
   if (!AU.ctx) return; const C = AU.ctx, t = C.currentTime; const m = model();
   const list = voiceList();
-  const gain = state.layers.voices ? .24 / list.length : 0;
+  const gain = state.layers.voices ? .3 / Math.pow(list.length, .8) : 0;
+  if (AU.wet) AU.wet.gain.setTargetAtTime(state.view === 'month' ? .7 : state.view === 'week' ? .6 : .45, t, .5);
   for (const b in AU.voices) if (!list.includes(b)) AU.voices[b].out.gain.setTargetAtTime(0, t, .2);
   for (const b of list){
     const v = voice(b); const s = sample(m.S, b, ms).spd; const r = clamp(s / PLANETS[b].max, -.6, 1.15); const f = freqOf(b, s);
@@ -1016,7 +1048,7 @@ function audioUpdate(ms){
     v.out.gain.setTargetAtTime((state.solo ? (b === state.solo ? .2 : 0) : gain) * v.D.lvl, t, .15);
   }
   const keep = new Set();
-  for (const c of contactsNow.slice(0, 4)){
+  for (const c of contactsNow.slice(0, 6)){
     keep.add(c.key); let ch = AU.chords.get(c.key);
     let f1 = PLANETS[c.t].base; while (f1 < 180) f1 *= 2; while (f1 > 420) f1 /= 2;
     const kind = c.kind || c.asp.kind, hard = kind === 'hard';
@@ -1028,6 +1060,10 @@ function audioUpdate(ms){
     ch.g.gain.setTargetAtTime(state.layers.chords && !state.solo && state.playing ? (hard ? .045 : .07) * c.v + .012 : 0, t, .12);
   }
   moodUpdate(ms);
+  /* every aspect in orb keeps ringing while it is felt: louder and quicker as it closes */
+  if (state.playing && !state.solo && state.layers.bells){ const nowT = performance.now();
+    for (const c of contactsNow.slice(0, 6)){ if (c.v < .12) continue; const kind = c.kind || c.asp.kind; const period = (kind === 'hard' ? 1500 : 2100) - 800 * c.v;
+      if (nowT - (AU.tolls.get(c.key) || 0) > period){ AU.tolls.set(c.key, nowT); toll(c, kind); } } }
   for (const [k, ch] of AU.chords) if (!keep.has(k)){ ch.g.gain.setTargetAtTime(0, t, .25); if (++ch.dead > 120){ try { ch.o1.stop(); ch.o2.stop(); if (ch.o3) ch.o3.stop(); } catch(e){} AU.chords.delete(k); } }
 }
 /* soft aspects: pure sine intervals. hard aspects: buzzy sawtooth intervals plus a minor-second rub, so they grind */
@@ -1080,7 +1116,8 @@ function moodUpdate(ms){
   moodInit(); const M = AU.mood, t = AU.ctx.currentTime, k = .6;
   const {h, tn} = moodAt(ms); const tot = h + tn; const mood = (h - tn) / (tot + .15);
   const on = state.layers.mood && !state.solo && state.playing;
-  M.g.gain.setTargetAtTime(on ? .045 + .05 * Math.min(1, tot) : 0, t, k);
+  const rich = state.view === 'year' ? 1 : 1.6;
+  M.g.gain.setTargetAtTime(on ? (.045 + .05 * Math.min(1, tot)) * rich : 0, t, k);
   M.root.gain.setTargetAtTime(.5, t, k); M.low.gain.setTargetAtTime(.35, t, k);
   M.maj3.gain.setTargetAtTime(.45 * clamp(mood * 1.6, 0, 1), t, k);
   M.min3.gain.setTargetAtTime(.45 * clamp(-mood * 1.6, 0, 1), t, k);
@@ -1096,6 +1133,12 @@ function renderAspChips(){
 $('#aspChips').addEventListener('click', e => { const b = e.target.closest('[data-asp]'); if (!b) return; const a = ASPECTS.find(x => x.k === b.dataset.asp); audition(220, a, 3, a.kind); ticker(`${a.g} ${INTERVAL[a.k]}: ${a.kind === 'soft' ? 'wobbles, then settles into harmony' : a.kind === 'hard' ? 'a rub that tightens and never settles' : 'two voices becoming one'}`); });
 $('#active').addEventListener('click', e => { const li = e.target.closest('li[data-i]'); if (!li) return; const c = contactsNow[Number(li.dataset.i)]; if (!c) return;
   let f1 = PLANETS[c.t].base; while (f1 < 180) f1 *= 2; while (f1 > 420) f1 /= 2; audition(f1, c.asp, c.orb, c.kind || c.asp.kind); ticker(c.text + `: ${INTERVAL[c.asp.k]}`); });
+function toll(c, kind){
+  let f = PLANETS[c.t].base * 2; while (f < 300) f *= 2; while (f > 880) f /= 2; const g = (.035 + .07 * c.v) * (c.t === 'Moon' ? .7 : 1);
+  if (kind === 'hard'){ bell(f, 'hard', g * .7); bell(f * 16 / 15, 'hard', g * .45); }
+  else if (kind === 'soft'){ bell(f, 'soft', g * .7); setTimeout(() => bell(f * c.asp.ratio, 'soft', g * .55), 140); }
+  else bell(f, 'fusion', g * .8);
+}
 function audioHush(){
   if (!AU.ctx) return; const t = AU.ctx.currentTime;
   for (const b in AU.voices) AU.voices[b].out.gain.setTargetAtTime(0, t, .25);
