@@ -115,6 +115,7 @@ body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:
 .pc-top h3{margin:0;font-family:var(--display);font-weight:500;font-size:1.3rem}
 .badge{font-family:var(--mono);font-size:.7rem;color:var(--muted);border:1px solid var(--rule);border-radius:999px;padding:1px 7px;vertical-align:middle;font-weight:400}
 .linkbtn{font:inherit;font-size:.92rem;background:none;border:0;color:var(--accent);cursor:pointer;padding:2px 0;text-decoration:underline;text-underline-offset:3px}
+.linkout{margin:0;font-family:var(--mono);font-size:.78rem;color:var(--muted);word-break:break-all;background:var(--panel);border:1px solid var(--rule);border-radius:4px;padding:8px 10px}
 .pc-birth{margin:0;color:var(--muted);font-size:.92rem}
 .pc-pl{margin:2px 0 0;display:flex;flex-wrap:wrap;gap:2px 12px;font-family:var(--mono);font-size:.8rem}
 .pl{white-space:nowrap;display:inline-flex;gap:3px;align-items:baseline}
@@ -189,7 +190,8 @@ body{margin:0}
   </header>
 
   <section class="people" aria-label="Whose stars">
-    <div class="people-head"><h2>Whose stars</h2><p id="peopleNote"></p></div>
+    <div class="people-head"><h2>Whose stars</h2><p id="peopleNote"></p><button class="linkbtn" id="copyLink">Copy a personal link with these two charts</button></div>
+    <p class="linkout" id="linkOut" hidden></p>
     <div class="pcards" id="pcards"></div>
   </section>
 
@@ -1217,6 +1219,20 @@ function renderPeople(){
     </form>` : ''}
   </article>`; }).join('');
 }
+/* personal links carry the two charts in the address after #c=, so the page itself holds no one's birth data */
+const PUBLIC_URL = 'https://coachericnielson-debug.github.io/sky-score/';
+function encodePeople(P){ const pk = p => [p.name, p.date, p.time, Number(p.tz)]; const j = JSON.stringify([pk(P.A), pk(P.B)]);
+  return btoa(unescape(encodeURIComponent(j))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+function decodePeople(code){
+  try { const b = code.replace(/-/g, '+').replace(/_/g, '/'); const arr = JSON.parse(decodeURIComponent(escape(atob(b + '==='.slice((b.length + 3) % 4)))));
+    const up = a => ({name: String(a[0]).slice(0, 24), date: /^\d{4}-\d{2}-\d{2}$/.test(a[1]) ? a[1] : null, time: /^\d{2}:\d{2}$/.test(a[2]) ? a[2] : '12:00', tz: clamp(Number(a[3]) || 0, -12, 14)});
+    const A = up(arr[0]), B = up(arr[1]); return (A.date && B.date) ? {A, B} : null; } catch(e){ return null; }
+}
+$('#copyLink').addEventListener('click', async () => {
+  const url = PUBLIC_URL + '#c=' + encodePeople(state.people); const out = $('#linkOut'); out.hidden = false;
+  try { await navigator.clipboard.writeText(url); out.textContent = 'Copied. Anyone with this link opens the page on these two charts: ' + url; }
+  catch(e){ out.textContent = 'Copy this link. Anyone with it opens the page on these two charts: ' + url; }
+});
 function fillSelects(){
   const P = state.people;
   $('#chartOf').innerHTML = `<option value="A">${esc(label(P.A))}</option><option value="B">${esc(label(P.B))}</option>`; $('#chartOf').value = state.chartOf;
@@ -1232,6 +1248,7 @@ $('#pcards').addEventListener('submit', e => {
 });
 
 /* ---------- boot ---------- */
+{ const m = /^#c=([A-Za-z0-9_-]+)/.exec(location.hash); const got = m && decodePeople(m[1]); if (got){ state.people = got; savePeople(got); } }
 renderPeople(); fillSelects(); renderAspChips(); $('#startMonth').value = ymOf(state.yearStart);
 rebuild();
 if (location.hash === '#couple'){ state.subject = 'AB'; fillSelects(); switchView('month'); }
