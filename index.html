@@ -52,6 +52,8 @@ body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:
 .play.big{font-size:1.15rem;padding:12px 30px 12px 24px;min-width:190px;box-shadow:0 2px 10px color-mix(in srgb, var(--accent) 35%, transparent)}
 .play.big:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
 .syn{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.synpick{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;font-size:.95rem;color:var(--muted)}
+.synpick select{font:inherit;font-size:1rem;color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:4px;padding:4px 8px}
 .syn h3{margin:0;font-family:var(--display);font-weight:500;font-style:italic;font-size:1.35rem}
 .syn .verdict{margin:0;max-width:75ch}
 .syn .sgrid-wrap{overflow-x:auto}
@@ -259,7 +261,7 @@ body{margin:0}
   </header>
 
   <section class="people" aria-label="Whose stars">
-    <div class="people-head"><h2>Whose stars</h2><p id="peopleNote"></p><button class="linkbtn" id="copyLink">Copy a personal link with these charts</button></div>
+    <div class="people-head"><h2>Whose stars</h2><p id="peopleNote"></p><button class="linkbtn" id="openSyn">Compare two people (synastry)</button><button class="linkbtn" id="copyLink">Copy a personal link with these charts</button></div>
     <p class="linkout" id="linkOut" hidden></p>
     <div class="pcards" id="pcards"></div>
   </section>
@@ -268,6 +270,7 @@ body{margin:0}
     <button role="tab" id="tab-year" aria-selected="true">Year score</button>
     <button role="tab" id="tab-week" aria-selected="false">Week</button>
     <button role="tab" id="tab-month" aria-selected="false">Month</button>
+    <button role="tab" id="tab-syn" aria-selected="false">Synastry: two people</button>
   </div>
 
   <div class="controls">
@@ -1088,7 +1091,8 @@ function renderSyn(){
     return `<td title="${na}'s ${x} ${ASP_NAME[l.asp.k]} ${nb}'s ${y}, ${fmtOrb(l.orb)}" style="background:color-mix(in srgb, ${col} ${Math.round(15 + 45 * l.v)}%, transparent)"><span class="g">${l.asp.g}${VS}</span></td>`; };
   const grid = `<div class="sgrid-wrap"><table><tr><th>${esc(na)} ↓ · ${esc(nb)} →</th>${ALL.map(y => `<th><span class="g" style="color:var(--${y.toLowerCase()})">${glyph(y)}</span></th>`).join('')}</tr>${ALL.map(x => `<tr><th><span class="g" style="color:var(--${x.toLowerCase()})">${glyph(x)}</span> ${x}</th>${ALL.map(y => cell(x, y)).join('')}</tr>`).join('')}</table></div>`;
   const top = links.slice(0, 8).map(l => `<li><span class="k-${l.kind}">●</span> <b>${esc(na)}'s ${l.x} ${ASP_NAME[l.asp.k]} ${esc(nb)}'s ${l.y}</b> <span class="when">${fmtOrb(l.orb)}</span><small>${esc(na)}'s ${NATAL_MEAN[l.x]} and ${esc(nb)}'s ${NATAL_MEAN[l.y]} ${SYN_LINE[l.asp.k]}. ${FEEL[l.kind]}</small></li>`).join('');
-  box.innerHTML = `<h3>The two of you: ${esc(na)} and ${esc(nb)}</h3><p class="verdict">${verdict} ${(n => n + (n === 1 ? ' easy link' : ' easy links'))(links.filter(l => l.kind === 'soft').length)}, ${(n => n + (n === 1 ? ' sharp edge' : ' sharp edges'))(links.filter(l => l.kind === 'hard').length)}, ${(n => n + (n === 1 ? ' fusion' : ' fusions'))(links.filter(l => l.kind === 'fusion').length)}.</p>
+  const pick = (id, cur) => `<select id="${id}">${state.roster.map(p => `<option value="${p.id}"${p.id === cur.id ? ' selected' : ''}>${esc(firstName(p))}</option>`).join('')}</select>`;
+  box.innerHTML = `<div class="synpick"><label for="synA">Compare</label>${pick('synA', A)}<label for="synB">with</label>${pick('synB', B)}</div><h3>The two of you: ${esc(na)} and ${esc(nb)}</h3><p class="verdict">${verdict} ${(n => n + (n === 1 ? ' easy link' : ' easy links'))(links.filter(l => l.kind === 'soft').length)}, ${(n => n + (n === 1 ? ' sharp edge' : ' sharp edges'))(links.filter(l => l.kind === 'hard').length)}, ${(n => n + (n === 1 ? ' fusion' : ' fusions'))(links.filter(l => l.kind === 'fusion').length)}.</p>
     <div class="bar"><button class="hear" id="hearSyn">▶︎ Hear the two of you</button><span class="mn">Each link plays on both people's planet instruments: major for ease, unresolved minor for friction.</span></div>
     ${grid}<ul>${top}</ul><p class="mn">These links are fixed for life. When a passing planet touches either end of one, that is when the relationship feels it, and those days show up in the week and month below.</p>`;
   box.hidden = false;
@@ -1647,7 +1651,9 @@ function render(){
   readTokens();
   const v = state.view, yr = v === 'year';
   $('#yearCtl').hidden = !yr; $('#planCtl').hidden = yr; $('#calendarWrap').hidden = v !== 'month'; $('#weekWrap').hidden = v !== 'week';
-  for (const t of ['year', 'week', 'month']) $('#tab-' + t).setAttribute('aria-selected', String(v === t));
+  const pairNow = state.subject && state.subject.includes('+');
+  $('#tab-year').setAttribute('aria-selected', String(v === 'year')); $('#tab-week').setAttribute('aria-selected', String(v === 'week' && !pairNow)); $('#tab-month').setAttribute('aria-selected', String(v === 'month'));
+  $('#tab-syn').setAttribute('aria-selected', String(v === 'week' && pairNow));
   if (yr) drawYear();
   else {
     drawPlanner(); const c = state.plan;
@@ -1668,7 +1674,19 @@ function switchView(v){
   if (v === 'year' && !(state.ms >= state.yearStart && state.ms <= state.yearStart + 365 * DAY)){ state.yearStart = monthOf(state.ms); $('#startMonth').value = ymOf(state.yearStart); }
   if (v === 'year' && state.year) render(); else rebuild();
 }
-for (const t of ['year', 'week', 'month']) $('#tab-' + t).addEventListener('click', () => switchView(t));
+$('#tab-year').addEventListener('click', () => switchView('year'));
+$('#tab-month').addEventListener('click', () => switchView('month'));
+$('#tab-week').addEventListener('click', () => { if (state.subject && state.subject.includes('+')){ state.subject = state.subject.split('+')[0]; fillSelects(); if (state.view === 'week'){ setPlaying(false); rebuild(); return; } } switchView('week'); });
+function openSynastry(a, b){
+  const R = state.roster; if (R.length < 2){ editing = 'new'; renderPeople(); $('#pcards').scrollIntoView({behavior: 'smooth', block: 'center'}); return; }
+  if (!a){ const cur = state.subject && state.subject.includes('+') ? state.subject.split('+') : [R[0].id, R[1].id]; [a, b] = cur; }
+  state.subject = a + '+' + b; fillSelects(); setPlaying(false);
+  if (state.view !== 'week'){ state.view = 'week'; state.weekStart = mondayOf(state.ms); } rebuild();
+  setTimeout(() => $('#syn').scrollIntoView({behavior: 'smooth', block: 'start'}), 60);
+}
+$('#tab-syn').addEventListener('click', () => openSynastry());
+$('#openSyn').addEventListener('click', () => openSynastry());
+document.addEventListener('change', e => { if (e.target.id !== 'synA' && e.target.id !== 'synB') return; const a = $('#synA').value, b = $('#synB').value; if (a === b) return; openSynastry(a, b); });
 const ymOf = ms => { const d = new Date(ms); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; };
 $('#startMonth').addEventListener('change', e => { const [y, m] = e.target.value.split('-').map(Number); if (!y) return; state.yearStart = new Date(y, m - 1, 1).getTime(); state.ms = state.yearStart; setPlaying(false); rebuild(); });
 $('#chartOf').addEventListener('change', e => { state.chartOf = e.target.value; rebuild(); });
