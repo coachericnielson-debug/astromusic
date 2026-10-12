@@ -51,6 +51,20 @@ body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:
 .transport select{font:inherit;font-size:.95rem;color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:4px;padding:4px 8px}
 .play.big{font-size:1.15rem;padding:12px 30px 12px 24px;min-width:190px;box-shadow:0 2px 10px color-mix(in srgb, var(--accent) 35%, transparent)}
 .play.big:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.syn{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.syn h3{margin:0;font-family:var(--display);font-weight:500;font-style:italic;font-size:1.35rem}
+.syn .verdict{margin:0;max-width:75ch}
+.syn .sgrid-wrap{overflow-x:auto}
+.syn table{border-collapse:collapse;font-size:.85rem}
+.syn th{font-weight:400;color:var(--muted);padding:3px 6px;font-size:.8rem;white-space:nowrap}
+.syn th .g{font-size:1rem}
+.syn td{width:30px;height:28px;text-align:center;border:1px solid var(--rule)}
+.syn td .g{font-size:1.05rem}
+.syn ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px 18px}
+.syn li{font-size:.9rem;line-height:1.4}
+.syn li small{display:block;color:var(--muted)}
+.syn .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.syn .hear{font:inherit;font-size:.92rem;background:none;border:1px solid var(--accent);color:var(--accent);border-radius:999px;padding:4px 14px;cursor:pointer}
 .why{display:flex;flex-direction:column;gap:5px;background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:10px 14px;font-size:.93rem}
 .why .verdict{font-weight:500}
 .why .row{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:baseline}
@@ -126,7 +140,10 @@ body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:
 .people-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 16px}
 .people-head h2{margin:0;font-family:var(--display);font-weight:500;font-style:italic;font-size:1.5rem}
 .people-head p{margin:0;color:var(--muted);font-size:.95rem}
-.pcards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.pcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.pcard.add{justify-content:center;border-style:dashed}
+.addbtn{font:inherit;font-size:1rem;background:none;border:0;color:var(--accent);cursor:pointer;padding:14px 0;text-align:left}
+.addbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .pcard{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:12px 16px;display:flex;flex-direction:column;gap:4px;min-width:0}
 .pc-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
 .pc-top h3{margin:0;font-family:var(--display);font-weight:500;font-size:1.3rem}
@@ -157,6 +174,8 @@ body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:
 .arcs h4{margin:0 0 4px;font-size:.82rem;font-family:var(--mono);font-weight:400;color:var(--muted)}
 .arcs ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px}
 .arcs li span.when{font-family:var(--mono);font-size:.74rem;color:var(--muted)}
+.wavebox{display:flex;align-items:center;gap:8px;margin:3px 0 2px}
+.wave{display:block;flex:none}
 .arcs li small{display:block;color:var(--muted);font-size:.84rem;line-height:1.35}
 .wgrid-wrap{overflow-x:auto;background:var(--panel);border:1px solid var(--rule);border-radius:6px}
 .wgrid{display:grid;grid-template-columns:86px repeat(7,minmax(118px,1fr));min-width:920px}
@@ -191,6 +210,9 @@ body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:
 .pill{align-self:flex-start;font-family:var(--mono);font-size:.72rem;border-radius:999px;padding:1px 9px;margin-top:4px;border:1px solid var(--rule)}
 .p-tense{color:var(--warm);border-color:var(--warm)} .p-easy{color:var(--cool);border-color:var(--cool)} .p-mixed{color:var(--gold);border-color:var(--gold)} .p-quiet{color:var(--muted)}
 .wd-body{display:flex;flex-direction:column;gap:8px;min-width:0}
+.gc2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 22px}
+.gc2 h5{margin:0 0 4px;font-size:.82rem;font-family:var(--mono);font-weight:500}
+@media (max-width:700px){.gc2{grid-template-columns:minmax(0,1fr)}}
 .sky{margin:0;color:var(--muted);font-size:.93rem;max-width:75ch}
 .sky .ph{color:var(--gold)}
 .reads{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px;max-width:75ch}
@@ -237,7 +259,7 @@ body{margin:0}
   </header>
 
   <section class="people" aria-label="Whose stars">
-    <div class="people-head"><h2>Whose stars</h2><p id="peopleNote"></p><button class="linkbtn" id="copyLink">Copy a personal link with these two charts</button></div>
+    <div class="people-head"><h2>Whose stars</h2><p id="peopleNote"></p><button class="linkbtn" id="copyLink">Copy a personal link with these charts</button></div>
     <p class="linkout" id="linkOut" hidden></p>
     <div class="pcards" id="pcards"></div>
   </section>
@@ -282,6 +304,7 @@ body{margin:0}
         <label for="speed">Tempo <select id="speed"><option value="slow">Slow</option><option value="normal" selected>Normal</option><option value="fast">Fast</option></select></label>
         <span class="tp-hint">Point at any dot or mark on the score to see what it is.</span>
       </div>
+      <section class="syn" id="syn" hidden></section>
       <div class="why" id="why" aria-live="polite"></div>
       <div class="scroll" id="scroll">
         <div class="canvases" id="canvases"><canvas id="base" aria-label="Score of planetary motion"></canvas><canvas id="over" aria-hidden="true"></canvas></div>
@@ -434,15 +457,18 @@ function crossings(La, getTarget, i0, i1, cb){
 }
 
 /* ---------- people ---------- */
-const SAMPLE = {
-  A:{name:'Ana', date:'1988-03-14', time:'07:30', tz:-3, sample:true},
-  B:{name:'Leo', date:'1985-11-02', time:'22:10', tz:-3, sample:true}
-};
-function loadPeople(){
-  try { const s = JSON.parse(localStorage.getItem('skyscore.people.v2') || 'null'); if (s && s.A && s.B && s.A.date && s.B.date) return s; } catch(e){}
-  return JSON.parse(JSON.stringify(SAMPLE));
+/*ROSTER*/const DEFAULT_ROSTER = [
+  {name:'Ana', date:'1988-03-14', time:'07:30', tz:-3, sample:true},
+  {name:'Leo', date:'1985-11-02', time:'22:10', tz:-3, sample:true}
+];/*END ROSTER*/
+let pid = 0; const withIds = arr => arr.map(p => ({...p, id: 'p' + (++pid)}));
+function loadRoster(){
+  try { const s = JSON.parse(localStorage.getItem('skyscore.roster.v3') || 'null'); if (Array.isArray(s) && s.length && s.every(p => p && p.date)) return withIds(s.map(({id, ...r}) => r)); } catch(e){}
+  return withIds(DEFAULT_ROSTER);
 }
-function savePeople(p){ try { localStorage.setItem('skyscore.people.v2', JSON.stringify(p)); } catch(e){} }
+function saveRoster(){ try { localStorage.setItem('skyscore.roster.v3', JSON.stringify(state.roster.map(({id, ...r}) => r))); } catch(e){} }
+const personById = id => state.roster.find(p => p.id === id) || state.roster[0];
+function selFor(subject){ if (subject && subject.includes('+')){ const [a, b] = subject.split('+'); return {pair: true, pA: personById(a), pB: personById(b)}; } const p = personById(subject); return {pair: false, pA: p, pB: p}; }
 const firstName = p => (p.name || 'Someone').trim().split(/\s+/)[0];
 const label = p => firstName(p) + (p.sample ? ' (sample)' : '');
 
@@ -557,8 +583,8 @@ const ADVICE = {
 const esc = x => String(x).replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
 const dayStart = (c, d) => { const s = new Date(c.startMs); return new Date(s.getFullYear(), s.getMonth(), s.getDate() + d).getTime(); };
 const hm = ms => new Date(ms).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
-function buildPlanner(subj, startMs, endMs, PER, moonBells){
-  const P = state.people; const pair = subj === 'AB';
+function buildPlanner(sel, startMs, endMs, PER, moonBells){
+  const pair = sel.pair; const P = {A: sel.pA, B: sel.pB}; const subj = pair ? 'AB' : 'A';
   const days = Math.round((endMs - startMs) / DAY), STEP = DAY / PER, n = days * PER + 1;
   const S = buildSeries(ALL, startMs, STEP, n);
   let targets, staves, inner;
@@ -634,7 +660,7 @@ function dayReads(c, d){
     const hit = ex.find(e => e.t === x.t && e.tg === x.tg && e.asp.k === x.asp.k);
     if (SLOW.includes(x.t) && !hit) continue;
     const k = x.t + x.tg.own + x.tg.b; if (seen.has(k)) continue; seen.add(k);
-    out.push({x, hit}); if (out.length >= 3) break;
+    out.push({x, hit}); if (out.length >= 6) break;
   }
   return out;
 }
@@ -650,7 +676,9 @@ function dayCardHTML(c, d, asArticle){
   const ing = di.ingress.map(g => ` The Moon moves into ${SIGN_NAMES[g.sign]} at ${hm(g.ms)}.`).join('');
   const ph = c.phases.filter(p => p.ms >= ds && p.ms < de).map(p => ` <span class="ph">${p.name} in ${SIGN_NAMES[p.sign]} at ${hm(p.ms)}.</span>`).join('');
   const sky = `<p class="sky"><span class="g">☽${VS}</span> Moon in ${SIGN_NAMES[di.moonSign]}: ${MOON_SIGN[di.moonSign]}. ${PHASES[di.phase][0]}: ${PHASES[di.phase][1]}.${ing}${ph}</p>`;
-  const list = reads.length ? `<ul class="reads">${reads.map(r => `<li><span class="dot k-${r.x.kind === 'mixed' ? 'fusion' : r.x.kind}">●</span><b>${planSentence(r.x.t, r.x.asp, r.x.tg, c)}</b> <span class="when">${r.hit ? 'exact ' + hm(r.hit.ms) : 'closest ' + fmtOrb(r.x.orb)}</span><br>${reading(r.x, c)}</li>`).join('')}</ul>`
+  const one = r => `<li><b>${planSentence(r.x.t, r.x.asp, r.x.tg, c)}</b> <span class="when">${r.hit ? 'exact ' + hm(r.hit.ms) : 'closest ' + fmtOrb(r.x.orb)}</span><br>${reading(r.x, c)}</li>`;
+  const gifts = reads.filter(r => r.x.kind === 'soft' || r.x.kind === 'fusion').slice(0, 3), chall = reads.filter(r => r.x.kind === 'hard' || r.x.kind === 'mixed').slice(0, 3);
+  const list = reads.length ? `<div class="gc2"><div><h5 class="k-soft">Gifts</h5>${gifts.length ? `<ul class="reads">${gifts.map(one).join('')}</ul>` : '<p class="sky">No easy openings today. Lean on what already works.</p>'}</div><div><h5 class="k-hard">Challenges</h5>${chall.length ? `<ul class="reads">${chall.map(one).join('')}</ul>` : '<p class="sky">No friction from the sky today.</p>'}</div></div>`
     : `<p class="sky">Nothing fast touches ${c.pair ? 'your charts' : 'this chart'} today. A free day to use as you like.</p>`;
   const head = `<header class="wd-head"><span class="wd">${date.toLocaleDateString('en-GB', {weekday:'long'})}</span><span class="wdate">${date.toLocaleDateString('en-GB', {day:'numeric', month:'long'})}</span><span class="pill p-${di.tag}">${di.tag}</span><button class="playday" data-playday="${d}" aria-label="Play ${date.toLocaleDateString('en-GB', {weekday:'long'})} slowly">▶︎ Play this day</button></header>`;
   if (!asArticle) return `${head}<div class="wd-body">${sky}${list}</div>`;
@@ -663,9 +691,10 @@ const now = Date.now();
 const mondayOf = ms => { const d = new Date(ms); return new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7)).getTime(); };
 const monthOf = ms => { const d = new Date(ms); return new Date(d.getFullYear(), d.getMonth(), 1).getTime(); };
 const state = {
-  view:'year', people: loadPeople(), chartOf:'A', yearStart: monthOf(now), monthStart: monthOf(now),
-  ms: now, playing:false, speed:'normal', layers:{voices:true, chords:true, bells:true, mood:true}, sound:'orchestra', year:null, plan:null, selDay:null, solo:null, holding:false, stopAt:null, muted:new Set(), subject:'A', weekStart: mondayOf(now)
+  view:'year', roster: loadRoster(), chartOf:null, yearStart: monthOf(now), monthStart: monthOf(now),
+  ms: now, playing:false, speed:'normal', layers:{voices:true, chords:true, bells:true, mood:true}, sound:'orchestra', year:null, plan:null, selDay:null, solo:null, holding:false, stopAt:null, muted:new Set(), subject:null, weekStart: mondayOf(now)
 };
+state.chartOf = state.roster[0].id; state.subject = state.roster[0].id;
 const RATES = {year:{slow:3, normal:9, fast:24}, week:{slow:1/48, normal:1/24, fast:1/10}, month:{slow:1/20, normal:1/10, fast:1/4}};
 const DAYRATE = {slow:1/40, normal:1/20, fast:1/8};
 const model = () => state.view === 'year' ? state.year : state.plan;
@@ -1033,6 +1062,51 @@ function updateReadout(force){
   if (force || t - lastList < 5) updateNotes();
 }
 
+/* ---------- synastry: how two birth charts touch each other ---------- */
+const SYN_ORB = b => (b === 'Sun' || b === 'Moon') ? 6 : ['Mercury','Venus','Mars'].includes(b) ? 5 : 4;
+const SYN_W = {Sun:1, Moon:1, Venus:1, Mars:.9, Mercury:.7, Jupiter:.6, Saturn:.8, Uranus:.4, Neptune:.4, Pluto:.5};
+const NATAL_MEAN = {Sun:'sense of purpose', Moon:'feelings and need for comfort', Mercury:'way of thinking and speaking', Venus:'loves and values', Mars:'drive and desire',
+  Jupiter:'faith and generosity', Saturn:'duties and fears', Uranus:'need for freedom', Neptune:'dreams and longing', Pluto:'depth and power'};
+const SYN_LINE = {conj:'merge', sext:'open doors for each other', tri:'flow together easily', sq:'rub against each other', opp:'pull against each other'};
+const ASP_NAME = {conj:'conjunct', sext:'sextile', tri:'trine', sq:'square', opp:'opposite'};
+function synastry(pA, pB){
+  const a = natalOf(pA), b = natalOf(pB); const out = [];
+  for (const x of ALL) for (const y of ALL){ if (SLOW.includes(x) && SLOW.includes(y)) continue;
+    const orb = (SYN_ORB(x) + SYN_ORB(y)) / 2; const bb = bestAspect(a[x], b[y], orb); if (!bb) continue;
+    const kind = bb.asp.kind === 'fusion' ? ((HARSH.has(x) || HARSH.has(y)) ? 'hard' : 'fusion') : bb.asp.kind;
+    out.push({x, y, asp: bb.asp, orb: bb.orb, kind, v: bump(bb.orb, orb), w: SYN_W[x] * SYN_W[y]}); }
+  return out.sort((p, q) => q.v * q.w - p.v * p.w);
+}
+function renderSyn(){
+  const box = $('#syn'); const c = state.plan;
+  if (state.view === 'year' || !c || !c.pair){ box.hidden = true; return; }
+  const A = c.pA, B = c.pB, na = firstName(A), nb = firstName(B); const links = synastry(A, B); state.synLinks = links;
+  const sum = k => links.filter(l => l.kind === k).reduce((s, l) => s + l.v * l.w, 0); const H = sum('soft'), T = sum('hard'), F = sum('fusion');
+  const verdict = H > T * 1.4 ? 'Mostly easy chemistry. You flow more than you clash, and the sharp edges are few.' : T > H * 1.4 ? 'Strong friction between you. The pull is real and so are the edges; this pair grows by working things through.' : 'A mix of ease and friction, about equal. The easy links carry you; the hard ones keep things alive.';
+  const cell = (x, y) => { const l = links.find(q => q.x === x && q.y === y); if (!l) return '<td></td>';
+    const col = l.kind === 'soft' ? 'var(--cool)' : l.kind === 'hard' ? 'var(--warm)' : 'var(--gold)';
+    return `<td title="${na}'s ${x} ${ASP_NAME[l.asp.k]} ${nb}'s ${y}, ${fmtOrb(l.orb)}" style="background:color-mix(in srgb, ${col} ${Math.round(15 + 45 * l.v)}%, transparent)"><span class="g">${l.asp.g}${VS}</span></td>`; };
+  const grid = `<div class="sgrid-wrap"><table><tr><th>${esc(na)} ↓ · ${esc(nb)} →</th>${ALL.map(y => `<th><span class="g" style="color:var(--${y.toLowerCase()})">${glyph(y)}</span></th>`).join('')}</tr>${ALL.map(x => `<tr><th><span class="g" style="color:var(--${x.toLowerCase()})">${glyph(x)}</span> ${x}</th>${ALL.map(y => cell(x, y)).join('')}</tr>`).join('')}</table></div>`;
+  const top = links.slice(0, 8).map(l => `<li><span class="k-${l.kind}">●</span> <b>${esc(na)}'s ${l.x} ${ASP_NAME[l.asp.k]} ${esc(nb)}'s ${l.y}</b> <span class="when">${fmtOrb(l.orb)}</span><small>${esc(na)}'s ${NATAL_MEAN[l.x]} and ${esc(nb)}'s ${NATAL_MEAN[l.y]} ${SYN_LINE[l.asp.k]}. ${FEEL[l.kind]}</small></li>`).join('');
+  box.innerHTML = `<h3>The two of you: ${esc(na)} and ${esc(nb)}</h3><p class="verdict">${verdict} ${(n => n + (n === 1 ? ' easy link' : ' easy links'))(links.filter(l => l.kind === 'soft').length)}, ${(n => n + (n === 1 ? ' sharp edge' : ' sharp edges'))(links.filter(l => l.kind === 'hard').length)}, ${(n => n + (n === 1 ? ' fusion' : ' fusions'))(links.filter(l => l.kind === 'fusion').length)}.</p>
+    <div class="bar"><button class="hear" id="hearSyn">▶︎ Hear the two of you</button><span class="mn">Each link plays on both people's planet instruments: major for ease, unresolved minor for friction.</span></div>
+    ${grid}<ul>${top}</ul><p class="mn">These links are fixed for life. When a passing planet touches either end of one, that is when the relationship feels it, and those days show up in the week and month below.</p>`;
+  box.hidden = false;
+}
+document.addEventListener('click', e => { if (!e.target.closest('#hearSyn')) return; playSynastry(); });
+function playSynastry(){
+  audioInit(); loadOrchestra().then(() => { if (!orchOn()) return; const C = AU.ctx; let t = C.currentTime + .15; const step = 2.6;
+    (state.synLinks || []).slice(0, 6).forEach((l, i) => {
+      const A = ORCH_VOICE[l.x], B = ORCH_VOICE[l.y]; const f = rootOf(l.x);
+      playNote(A.inst, f, {when: t, dur: 2.4, gain: .32, pan: -.4});
+      if (l.kind === 'soft'){ playNote(B.inst, f * 5 / 4, {when: t + .25, dur: 2.2, gain: .3, pan: .4}); playNote('string_ensemble_1', f / 2, {when: t, dur: 2.5, gain: .1, attack: .3}); playNote('string_ensemble_1', f * 3 / 4, {when: t, dur: 2.5, gain: .08, attack: .3}); }
+      else if (l.kind === 'hard'){ playNote(B.inst, f * 16 / 15, {when: t + .25, dur: 2.2, gain: .28, pan: .4}); playNote('tremolo_strings', f / 2, {when: t, dur: 2.5, gain: .1}); playNote('tremolo_strings', f * 45 / 64, {when: t, dur: 2.5, gain: .08}); }
+      else { playNote(B.inst, f, {when: t + .25, dur: 2.2, gain: .3, pan: .4}); }
+      const txt = `${firstName(state.plan.pA)}'s ${l.x} ${ASP_NAME[l.asp.k]} ${firstName(state.plan.pB)}'s ${l.y}: ${A.word} and ${B.word}, ${l.kind === 'soft' ? 'major' : l.kind === 'hard' ? 'minor, unresolved' : 'one voice'}`;
+      setTimeout(() => ticker(txt), Math.max(0, (t - C.currentTime) * 1000)); t += step; });
+  });
+}
+
 /* ---------- why it sounds this way ---------- */
 function whyLists(list){
   const kindOf = c => c.kind || c.asp.kind; const rel = list.filter(c => c.v > .12 && !state.muted.has(c.t));
@@ -1082,6 +1156,15 @@ function movementHTML(c){
   return `<ul class="mv">${items.join('')}</ul>`;
 }
 /* each aspect's arc this week: peaking (exact inside the week), building, or fading */
+/* the whole arc of an aspect drawn as a wave, with this week shaded, so its cycle shows: rising, peak, fading, and retrograde returns */
+function arcWave(x, c){
+  const t = x.t, orb = CT[t].orb, a = x.asp.a, sg = (a === 0 || a === 180) ? [1] : [1, -1];
+  const half = ['Sun','Mercury','Venus','Mars'].includes(t) ? 18 : t === 'Jupiter' ? 60 : 120; const mid = (c.startMs + c.endMs) / 2, N = 60, pts = [];
+  for (let i = 0; i <= N; i++){ const ms = mid + (i / N * 2 - 1) * half * DAY; const L = lonAt(t, ms); let best = 99; for (const s of sg) best = Math.min(best, Math.abs(norm180(L - x.tg.lon - s * a))); pts.push(bump(best, orb)); }
+  const W = 150, H = 28, X = i => i / N * W, Y = v => H - 3 - v * (H - 7); const fx = ms => ((ms - mid) / (half * DAY) + 1) / 2 * W;
+  const col = `var(--${x.kind === 'soft' ? 'cool' : x.kind === 'hard' ? 'warm' : 'gold'})`;
+  return `<span class="wavebox"><svg class="wave" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" aria-hidden="true"><rect x="${fx(c.startMs).toFixed(1)}" y="0" width="${(fx(c.endMs) - fx(c.startMs)).toFixed(1)}" height="${H}" fill="var(--band)"/><line x1="0" x2="${W}" y1="${H - 3}" y2="${H - 3}" stroke="var(--rule)"/><polyline fill="none" stroke="${col}" stroke-width="1.8" stroke-linejoin="round" points="${pts.map((v, i) => X(i).toFixed(1) + ',' + Y(v).toFixed(1)).join(' ')}"/></svg><span class="mn">${half * 2} days</span></span>`;
+}
 function arcsHTML(c){
   const start = planContacts(c.startMs + HOUR), end = planContacts(c.endMs - HOUR); const map = new Map();
   const keyOf = x => x.t + '|' + x.tg.own + x.tg.b + '|' + x.asp.k;
@@ -1092,10 +1175,10 @@ function arcsHTML(c){
   const peak = [], build = [], fade = [];
   for (const v of map.values()){ if (v.peak) peak.push(v); else if (v.status === 'building') build.push(v); else fade.push(v); }
   peak.sort((p, q) => p.peak - q.peak);
-  const li = (v, when) => `<li><span class="k-${v.x.kind === 'mixed' ? 'fusion' : v.x.kind}">●</span> <b>${planSentence(v.x.t, v.x.asp, v.x.tg, c)}</b> <span class="when">${when}</span><small>${reading(v.x, c)}</small></li>`;
+  const li = (v, when) => `<li><span class="k-${v.x.kind === 'mixed' ? 'fusion' : v.x.kind}">●</span> <b>${planSentence(v.x.t, v.x.asp, v.x.tg, c)}</b> <span class="when">${when}</span>${arcWave(v.x, c)}<small>${reading(v.x, c)}</small></li>`;
   const sec = (title, arr, fn) => arr.length ? `<div><h4>${title}</h4><ul>${arr.slice(0, 6).map(fn).join('')}</ul></div>` : '';
   const html = sec('peaking this week', peak, v => li(v, 'exact ' + whenTxt(v.peak))) + sec('building toward next week', build, v => li(v, fmtOrb(v.orb) + ' and closing')) + sec('fading out', fade, v => li(v, fmtOrb(v.orb) + ' and leaving'));
-  return `<div class="arcs">${html || '<p class="sky">Few planets touch the chart this week. A light week.</p>'}</div>`;
+  return `<p class="mn" style="margin:0 0 6px">Each wave is the whole cycle of that aspect. The shaded band is this week.</p><div class="arcs">${html || '<p class="sky">Few planets touch the chart this week. A light week.</p>'}</div>`;
 }
 /* the planner grid: four blocks a day, with what is active in each */
 const BLOCKS = [['night', 0], ['morning', 6], ['afternoon', 12], ['evening', 18]];
@@ -1555,9 +1638,8 @@ function planRange(){
   const d = new Date(state.monthStart); return [state.monthStart, new Date(d.getFullYear(), d.getMonth() + 1, 1).getTime()];
 }
 function rebuild(){
-  const ppl = state.people;
-  if (state.view === 'year') state.year = buildYear(ppl[state.chartOf], state.yearStart);
-  else { const [a, b] = planRange(); state.plan = buildPlanner(state.subject, a, b, state.view === 'week' ? 24 : 8, state.view === 'week'); }
+  if (state.view === 'year') state.year = buildYear(personById(state.chartOf), state.yearStart);
+  else { const [a, b] = planRange(); state.plan = buildPlanner(selFor(state.subject), a, b, state.view === 'week' ? 24 : 8, state.view === 'week'); }
   const m = model(); if (state.ms < m.startMs || state.ms > m.endMs) state.ms = (now >= m.startMs && now <= m.endMs) ? now : m.startMs + 12 * HOUR;
   state.selDay = null; render();
 }
@@ -1576,7 +1658,7 @@ function render(){
     if (v === 'month') renderCalendar(); else renderWeek();
     markSel();
   }
-  renderMixer(); renderDayDetail(); drawOver(); updateReadout(true);
+  renderMixer(); renderDayDetail(); renderSyn(); drawOver(); updateReadout(true);
 }
 function switchView(v){
   if (state.view === v) return; if (state.playing) setPlaying(false);
@@ -1606,55 +1688,65 @@ const TZ_OPTS = (() => { const o = []; for (let h = -12; h <= 14; h += .5){ if (
 const tzLabel = h => `UTC${h >= 0 ? '+' : '−'}${Math.floor(Math.abs(h))}${Math.abs(h) % 1 ? ':30' : ''}`;
 function birthLine(p){ const [y, m, d] = p.date.split('-').map(Number); return `Born ${new Date(y, m - 1, d).toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'})} at ${p.time || '12:00'} (${tzLabel(Number(p.tz))})`; }
 function placements(p){ const n = natalOf(p); return ALL.map(b => `<span class="pl" title="${b} ${Math.floor(n[b] % 30)}° ${SIGN_NAMES[Math.floor(n[b] / 30)]}"><span class="g" style="color:var(--${b.toLowerCase()})">${glyph(b)}</span>${Math.floor(n[b] % 30)}°<span class="g">${SIGNS[Math.floor(n[b] / 30)]}${VS}</span></span>`).join(''); }
-function renderPeople(){
-  const P = state.people;
-  $('#peopleNote').textContent = (P.A.sample || P.B.sample) ? 'Anyone marked sample is invented. Tap Edit to put in a real person. Everything on the page follows from these two charts.' : 'Everything on the page follows from these two charts.';
-  $('#pcards').innerHTML = ['A', 'B'].map(k => { const p = P[k]; return `<article class="pcard">
-    <div class="pc-top"><h3>${esc(firstName(p))}${p.sample ? ' <span class="badge">sample</span>' : ''}</h3><button class="linkbtn" data-edit="${k}">${editing === k ? 'Close' : 'Edit'}</button></div>
-    <p class="pc-birth">${esc(birthLine(p))}</p><p class="pc-pl">${placements(p)}</p>
-    ${editing === k ? `<form class="pform" data-k="${k}">
-      <label for="f-name">Name</label><input id="f-name" type="text" maxlength="24" value="${esc(p.name)}">
+function personForm(p, key){
+  return `<form class="pform" data-k="${key}">
+      <label for="f-name">Name</label><input id="f-name" type="text" maxlength="24" value="${esc(p.name)}" required>
       <label for="f-date">Birth date</label><input id="f-date" type="date" value="${esc(p.date)}" required>
       <label for="f-time">Birth time</label><input id="f-time" type="time" value="${esc(p.time || '12:00')}">
       <label for="f-tz">Clock offset</label><select id="f-tz">${TZ_OPTS.map(h => `<option value="${h}"${h === Number(p.tz) ? ' selected' : ''}>${tzLabel(h)}</option>`).join('')}</select>
-      <p class="note">Use the clock offset at the birth place on that day. Brazil is UTC−3 (−2 in old summer time), New York UTC−5 (−4 in summer), London UTC+0 (+1 in summer). No birth time? Leave 12:00; the Moon may be off by a few degrees.</p>
-      <div class="row"><button class="save" type="submit">Save these stars</button></div>
-    </form>` : ''}
-  </article>`; }).join('');
+      <p class="note">Use the clock offset at the birth place on that day. Brazil is UTC−3 (−2 in old summer time), Utah UTC−7 (−6 in summer), Arizona UTC−7 all year, California UTC−8 (−7 in summer), New York UTC−5 (−4 in summer). No birth time? Leave 12:00; the Moon may be off by a few degrees.</p>
+      <div class="row"><button class="save" type="submit">${key === 'new' ? 'Add this person' : 'Save these stars'}</button>${key !== 'new' && state.roster.length > 1 ? `<button type="button" class="linkbtn" data-remove="${key}">${state.confirmRemove === key ? 'Tap again to remove' : 'Remove this person'}</button>` : ''}</div>
+    </form>`;
+}
+function renderPeople(){
+  const R = state.roster;
+  $('#peopleNote').textContent = R.some(p => p.sample) ? 'Anyone marked sample is invented. Tap Edit to put in a real person, or add someone.' : 'Pick anyone for the year score, or one person or any two together for the week and month.';
+  $('#pcards').innerHTML = R.map(p => `<article class="pcard">
+    <div class="pc-top"><h3>${esc(firstName(p))}${p.sample ? ' <span class="badge">sample</span>' : ''}</h3><button class="linkbtn" data-edit="${p.id}">${editing === p.id ? 'Close' : 'Edit'}</button></div>
+    <p class="pc-birth">${esc(birthLine(p))}</p><p class="pc-pl">${placements(p)}</p>${editing === p.id ? personForm(p, p.id) : ''}</article>`).join('')
+    + `<article class="pcard add">${editing === 'new' ? `<div class="pc-top"><h3>Add a person</h3><button class="linkbtn" data-edit="new">Close</button></div>${personForm({name: '', date: '', time: '12:00', tz: -3}, 'new')}` : `<button class="addbtn" data-edit="new">+ Add a person</button>`}</article>`;
 }
 /* personal links carry the two charts in the address after #c=, so the page itself holds no one's birth data */
 const PUBLIC_URL = 'https://coachericnielson-debug.github.io/astromusic/';
-function encodePeople(P){ const pk = p => [p.name, p.date, p.time, Number(p.tz)]; const j = JSON.stringify([pk(P.A), pk(P.B)]);
+function encodeRoster(R){ const j = JSON.stringify(R.slice(0, 12).map(p => [p.name, p.date, p.time, Number(p.tz)]));
   return btoa(unescape(encodeURIComponent(j))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
-function decodePeople(code){
+function decodeRoster(code){
   try { const b = code.replace(/-/g, '+').replace(/_/g, '/'); const arr = JSON.parse(decodeURIComponent(escape(atob(b + '==='.slice((b.length + 3) % 4)))));
     const up = a => ({name: String(a[0]).slice(0, 24), date: /^\d{4}-\d{2}-\d{2}$/.test(a[1]) ? a[1] : null, time: /^\d{2}:\d{2}$/.test(a[2]) ? a[2] : '12:00', tz: clamp(Number(a[3]) || 0, -12, 14)});
-    const A = up(arr[0]), B = up(arr[1]); return (A.date && B.date) ? {A, B} : null; } catch(e){ return null; }
+    const list = arr.map(up).filter(p => p.date); return list.length ? list : null; } catch(e){ return null; }
 }
 $('#copyLink').addEventListener('click', async () => {
-  const url = PUBLIC_URL + '#c=' + encodePeople(state.people); const out = $('#linkOut'); out.hidden = false;
-  try { await navigator.clipboard.writeText(url); out.textContent = 'Copied. Anyone with this link opens the page on these two charts: ' + url; }
-  catch(e){ out.textContent = 'Copy this link. Anyone with it opens the page on these two charts: ' + url; }
+  const url = PUBLIC_URL + '#c=' + encodeRoster(state.roster); const out = $('#linkOut'); out.hidden = false;
+  try { await navigator.clipboard.writeText(url); out.textContent = 'Copied. Anyone with this link opens the page with these charts: ' + url; }
+  catch(e){ out.textContent = 'Copy this link. Anyone with it opens the page with these charts: ' + url; }
 });
 function fillSelects(){
-  const P = state.people;
-  $('#chartOf').innerHTML = `<option value="A">${esc(label(P.A))}</option><option value="B">${esc(label(P.B))}</option>`; $('#chartOf').value = state.chartOf;
-  $('#subject').innerHTML = `<option value="A">${esc(label(P.A))}</option><option value="B">${esc(label(P.B))}</option><option value="AB">${esc(firstName(P.A))} and ${esc(firstName(P.B))} together</option>`; $('#subject').value = state.subject;
+  const R = state.roster;
+  $('#chartOf').innerHTML = R.map(p => `<option value="${p.id}">${esc(label(p))}</option>`).join('');
+  if (!R.some(p => p.id === state.chartOf)) state.chartOf = R[0].id; $('#chartOf').value = state.chartOf;
+  let opts = `<optgroup label="One person">${R.map(p => `<option value="${p.id}">${esc(label(p))}</option>`).join('')}</optgroup>`;
+  if (R.length > 1){ opts += '<optgroup label="Two people together">'; for (let i = 0; i < R.length; i++) for (let j = i + 1; j < R.length; j++) opts += `<option value="${R[i].id}+${R[j].id}">${esc(firstName(R[i]))} and ${esc(firstName(R[j]))}</option>`; opts += '</optgroup>'; }
+  $('#subject').innerHTML = opts; if (![...$('#subject').options].some(o => o.value === state.subject)) state.subject = R[0].id; $('#subject').value = state.subject;
 }
-$('#pcards').addEventListener('click', e => { const b = e.target.closest('[data-edit]'); if (!b) return; editing = editing === b.dataset.edit ? null : b.dataset.edit; renderPeople(); if (editing) $('#f-name').focus(); });
+$('#pcards').addEventListener('click', e => {
+  const rm = e.target.closest('[data-remove]');
+  if (rm){ const id = rm.dataset.remove; if (state.confirmRemove === id){ state.roster = state.roster.filter(p => p.id !== id); state.confirmRemove = null; editing = null; saveRoster(); renderPeople(); fillSelects(); setPlaying(false); state.year = null; state.plan = null; rebuild(); } else { state.confirmRemove = id; renderPeople(); } return; }
+  const b = e.target.closest('[data-edit]'); if (!b) return; editing = editing === b.dataset.edit ? null : b.dataset.edit; state.confirmRemove = null; renderPeople(); if (editing) $('#f-name').focus();
+});
 $('#pcards').addEventListener('submit', e => {
-  e.preventDefault(); const k = e.target.dataset.k; const old = state.people[k];
-  const p = {name: $('#f-name').value.trim() || old.name, date: $('#f-date').value || old.date, time: $('#f-time').value || '12:00', tz: Number($('#f-tz').value)};
-  p.sample = !!old.sample && p.name === old.name && p.date === old.date && p.time === old.time && p.tz === Number(old.tz);
-  state.people = {...state.people, [k]: p}; savePeople(state.people); editing = null;
-  renderPeople(); fillSelects(); setPlaying(false); state.year = null; state.plan = null; rebuild();
+  e.preventDefault(); const k = e.target.dataset.k; const old = k === 'new' ? null : personById(k);
+  const p = {name: $('#f-name').value.trim() || (old ? old.name : 'Someone'), date: $('#f-date').value || (old && old.date), time: $('#f-time').value || '12:00', tz: Number($('#f-tz').value)};
+  if (!p.date) return;
+  if (old){ p.sample = !!old.sample && p.name === old.name && p.date === old.date && p.time === old.time && p.tz === Number(old.tz); Object.assign(old, p); }
+  else state.roster.push({...p, id: 'p' + (++pid)});
+  saveRoster(); editing = null; renderPeople(); fillSelects(); setPlaying(false); state.year = null; state.plan = null; rebuild();
 });
 
 /* ---------- boot ---------- */
-{ const m = /^#c=([A-Za-z0-9_-]+)/.exec(location.hash); const got = m && decodePeople(m[1]); if (got){ state.people = got; savePeople(got); } }
+{ const m = /^#c=([A-Za-z0-9_-]+)/.exec(location.hash); const got = m && decodeRoster(m[1]); if (got){ state.roster = withIds(got); saveRoster(); state.chartOf = state.roster[0].id; state.subject = state.roster[0].id; } }
 renderPeople(); fillSelects(); renderAspChips(); $('#startMonth').value = ymOf(state.yearStart);
 rebuild();
-if (location.hash === '#couple'){ state.subject = 'AB'; fillSelects(); switchView('month'); }
+if (location.hash === '#couple' && state.roster.length > 1){ state.subject = state.roster[0].id + '+' + state.roster[1].id; fillSelects(); switchView('month'); }
 else if (location.hash === '#week' || location.hash === '#month') switchView(location.hash.slice(1));
 let rsT = null; new ResizeObserver(() => { clearTimeout(rsT); rsT = setTimeout(render, 120); }).observe($('#scroll'));
 const rerender = () => render();
