@@ -221,7 +221,6 @@ body{margin:0}
       <label for="L-chords"><input type="checkbox" id="L-chords" checked> Aspect chords</label>
       <label for="L-bells"><input type="checkbox" id="L-bells" checked> Bells</label>
       <label for="L-mood"><input type="checkbox" id="L-mood" checked> Major/minor bed</label>
-      <label for="L-speak"><input type="checkbox" id="L-speak" checked> Say what's happening</label>
       <label for="soundMode">Sound <select id="soundMode"><option value="orchestra" selected>Orchestra</option><option value="synth">Synth</option></select></label>
     </div>
   </div>
@@ -277,7 +276,7 @@ body{margin:0}
       <h2>Listening</h2>
       <dl>
         <dt>planet voices</dt><dd>Tap a planet in the Voices row, or its name on the score, to hear it alone. Each planet is a real instrument in its own place left to right: the Sun a French horn, the Moon a flute, Mercury a marimba, Venus a celesta, Mars a trombone, Jupiter a church organ, Saturn a cello, Uranus a harpsichord trill, Neptune a choir, Pluto a timpani heartbeat. Each plays its note in a rhythm that quickens when the planet moves fast. Its pitch follows its speed, the way Kepler wrote each planet a melody in <i>Harmonices Mundi</i> (1619). Fast is high. Mercury's ticks, Mars's growl and Pluto's heartbeat also speed up and slow down with the planet. A station slides down an octave. Retrograde sounds muffled.</dd>
-        <dt>aspect chords</dt><dd>While a trine or sextile is in orb the strings hold a major chord. A square or opposition holds a minor chord on trembling strings with a clashing note that never resolves. The two planets' own instruments keep sounding the chord together, so Mars square Venus is the trombone and the celesta. A voice names each exact moment. Each contact plays two tones set to its interval. Trines and sextiles are pure, sweet intervals (a fifth, a sixth). Squares and oppositions are buzzy and rub (a tritone, a minor ninth). Conjunctions are two voices on one note. Easy aspects start with a slow wobble that calms as they close and locks into harmony at exact. Hard aspects go the other way: the closer they get, the faster and harsher the rub, with a clashing half step added, and nothing resolves.</dd>
+        <dt>aspect chords</dt><dd>While a trine or sextile is in orb the strings hold a major chord. A square or opposition holds a minor chord on trembling strings with a clashing note that never resolves. The two planets' own instruments keep sounding the chord together, so Mars square Venus is the trombone and the celesta.Each contact plays two tones set to its interval. Trines and sextiles are pure, sweet intervals (a fifth, a sixth). Squares and oppositions are buzzy and rub (a tritone, a minor ninth). Conjunctions are two voices on one note. Easy aspects start with a slow wobble that calms as they close and locks into harmony at exact. Hard aspects go the other way: the closer they get, the faster and harsher the rub, with a clashing half step added, and nothing resolves.</dd>
         <dt>major/minor bed</dt><dd>A soft chord sits under everything. It is major while harmony leads, turns minor as tension grows, and goes diminished with a clashing half step when tension takes over. You can hear a hard week coming before you read about it.</dd>
         <dt>bells</dt><dd>Every aspect in orb keeps ringing for as long as it is felt, softly at first and quicker and louder as it closes. Easy aspects ring two sweet notes, hard ones two clashing notes. At exact the big bells ring. An easy aspect rings a rising major chord that sounds finished. A hard aspect strikes three clashing bells at once that hang in the air unresolved. Deep gongs mark stations, and bright gold bells ring when two planets meet in the sky or the Moon turns new or full.</dd>
       </dl>
@@ -609,7 +608,7 @@ const mondayOf = ms => { const d = new Date(ms); return new Date(d.getFullYear()
 const monthOf = ms => { const d = new Date(ms); return new Date(d.getFullYear(), d.getMonth(), 1).getTime(); };
 const state = {
   view:'year', people: loadPeople(), chartOf:'A', yearStart: monthOf(now), monthStart: monthOf(now),
-  ms: now, playing:false, speed:'normal', layers:{voices:true, chords:true, bells:true, mood:true, speak:true}, sound:'orchestra', year:null, plan:null, selDay:null, solo:null, holding:false, stopAt:null, subject:'A', weekStart: mondayOf(now)
+  ms: now, playing:false, speed:'normal', layers:{voices:true, chords:true, bells:true, mood:true}, sound:'orchestra', year:null, plan:null, selDay:null, solo:null, holding:false, stopAt:null, subject:'A', weekStart: mondayOf(now)
 };
 const RATES = {year:{slow:3, normal:9, fast:24}, week:{slow:.05, normal:.1, fast:.25}, month:{slow:.05, normal:.1, fast:.3}};
 const DAYRATE = {slow:1/40, normal:1/20, fast:1/8};
@@ -1124,8 +1123,6 @@ function orchUpdate(ms){
 function hushSynth(){ if (!AU.ctx) return; const t = AU.ctx.currentTime; for (const b in AU.voices) AU.voices[b].out.gain.setTargetAtTime(0, t, .2); for (const [, ch] of AU.chords) ch.g.gain.setTargetAtTime(0, t, .2); }
 function hushOrch(){ if (!AU.ctx || !AU.pads) return; const t = AU.ctx.currentTime; for (const [, pad] of AU.pads) for (const n of pad.notes) n.g.gain.setTargetAtTime(0, t, .3); }
 function hushAll(){ hushSynth(); hushOrch(); if (AU.mood) AU.mood.g.gain.setTargetAtTime(0, AU.ctx.currentTime, .3); AU.mood = null; }
-function say(text){ if (!state.layers.speak || !state.playing || !('speechSynthesis' in window)) return;
-  try { const u = new SpeechSynthesisUtterance(text.replace(/, exact$/, '')); u.rate = 1.03; u.volume = .9; if (speechSynthesis.speaking) speechSynthesis.cancel(); speechSynthesis.speak(u); } catch(e){} }
 function orchBell(freq, kind, gain){
   const inst = kind === 'soft' ? 'vibraphone' : kind === 'hard' ? 'tubular_bells' : kind === 'gong' ? 'timpani' : 'celesta'; let f = freq;
   if (inst === 'timpani'){ while (f > 150) f /= 2; for (let i = 0; i < 5; i++) playNote('timpani', f, {gain: gain * 2.2 * (1 - i * .15), dur: 1.4, when: AU.ctx.currentTime + i * .09}); playNote('tubular_bells', f * 4, {gain: gain * 1.2, dur: 4}); return; }
@@ -1272,7 +1269,7 @@ function fireEvents(a, b){
     else if (e.type === 'station'){ let f = PLANETS[e.b].base / 2; while (f < 70) f *= 2; bell(f, 'gong', .2); }
     else if (e.type === 'meet'){ let f = PLANETS[e.a].base * 2; while (f > 900) f /= 2; bell(f, 'fusion', .16); }
     else { let f = PLANETS[e.t].base * 2; while (f < 260) f *= 2; while (f > 900) f /= 2; const k = state.view !== 'year' ? e.kind : e.asp.kind; chime(f, k, e.t === 'Moon' ? .07 : .15); }
-    ticker(eventText(e)); if (!(e.type === 'exact' && e.t === 'Moon' && state.view === 'month')) say(eventText(e));
+    ticker(eventText(e));
   }
 }
 
@@ -1282,7 +1279,7 @@ function setPlaying(on){
   state.playing = on; $('#playIco').textContent = on ? '❚❚' : '▶︎'; $('#playTxt').textContent = on ? 'Pause' : 'Play';
   state.holding = false;
   if (on){ audioInit(); if (state.sound === 'orchestra') loadOrchestra(); const m = model(); if (!state.stopAt && state.ms >= m.endMs - DAY * .2) state.ms = m.startMs; lastFire = state.ms; lastT = performance.now(); requestAnimationFrame(loop); }
-  else { audioHush(); hushOrch(); state.stopAt = null; if ('speechSynthesis' in window) try { speechSynthesis.cancel(); } catch(e){} }
+  else { audioHush(); hushOrch(); state.stopAt = null; }
 }
 function loop(ts){
   if (!state.playing) return; const dt = Math.min(.1, (ts - lastT) / 1000); lastT = ts;
@@ -1298,7 +1295,7 @@ function keepPlayheadVisible(){ const sc = $('#scroll'); if (sc.scrollWidth <= s
 $('#play').addEventListener('click', () => { state.stopAt = null; setPlaying(!state.playing); });
 $('#speed').addEventListener('change', e => { state.speed = e.target.value; });
 $('#soundMode').addEventListener('change', e => { state.sound = e.target.value; renderMixer(); if (state.sound === 'orchestra' && AU.ctx) loadOrchestra(); hushAll(); });
-for (const k of ['voices', 'chords', 'bells', 'mood', 'speak']) $('#L-' + k).addEventListener('change', e => { state.layers[k] = e.target.checked; });
+for (const k of ['voices', 'chords', 'bells', 'mood']) $('#L-' + k).addEventListener('change', e => { state.layers[k] = e.target.checked; });
 
 /* ---------- views ---------- */
 function planRange(){
