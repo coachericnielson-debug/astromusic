@@ -46,6 +46,17 @@ body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:
 .controls select,.controls input[type=month]{font:inherit;font-size:.95rem;color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:4px;padding:4px 8px}
 .controls input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px}
 .play{font:inherit;font-weight:500;font-size:1rem;background:var(--accent);color:var(--panel);border:0;border-radius:999px;padding:8px 20px 8px 16px;cursor:pointer;display:inline-flex;gap:8px;align-items:center;min-width:112px;justify-content:center}
+.transport{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px}
+.transport label{display:flex;gap:7px;align-items:center;color:var(--muted);font-size:.95rem}
+.transport select{font:inherit;font-size:.95rem;color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:4px;padding:4px 8px}
+.play.big{font-size:1.15rem;padding:12px 30px 12px 24px;min-width:190px;box-shadow:0 2px 10px color-mix(in srgb, var(--accent) 35%, transparent)}
+.play.big:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.tp-hint{color:var(--muted);font-size:.88rem;font-style:italic}
+.tt{position:fixed;z-index:60;max-width:310px;background:var(--panel);color:var(--ink);border:1px solid var(--rule);border-radius:6px;padding:10px 12px 11px;box-shadow:0 6px 24px rgba(0,0,0,.22);font-size:.88rem;line-height:1.4;pointer-events:none}
+.tt b{font-weight:500;font-size:.95rem;display:block}
+.tt .tt-when{display:block;font-family:var(--mono);font-size:.74rem;color:var(--muted);margin:2px 0 6px}
+.tt .tt-feel{display:block;margin-bottom:4px}
+.tt p{margin:0;color:var(--muted)}
 .play .ico{font-family:var(--mono);font-size:.85em}
 .navbtn{font:inherit;font-size:1.2rem;line-height:1;background:var(--panel);color:var(--ink);border:1px solid var(--rule);border-radius:4px;width:34px;height:32px;cursor:pointer}
 #monthLabel{font-family:var(--display);font-style:italic;font-size:1.35rem;min-width:9ch;text-align:center}
@@ -213,10 +224,6 @@ body{margin:0}
       <button class="navbtn" id="nextP" aria-label="Next">›</button>
     </div>
     <div class="group">
-      <button class="play" id="play"><span class="ico" id="playIco">▶︎</span><span id="playTxt">Play</span></button>
-      <label for="speed">Tempo <select id="speed"><option value="slow">Slow</option><option value="normal" selected>Normal</option><option value="fast">Fast</option></select></label>
-    </div>
-    <div class="group">
       <label for="L-voices"><input type="checkbox" id="L-voices" checked> Planet voices</label>
       <label for="L-chords"><input type="checkbox" id="L-chords" checked> Aspect chords</label>
       <label for="L-bells"><input type="checkbox" id="L-bells" checked> Bells</label>
@@ -234,6 +241,11 @@ body{margin:0}
 
   <div class="stage">
     <div class="sheet">
+      <div class="transport">
+        <button class="play big" id="play"><span class="ico" id="playIco">▶︎</span><span id="playTxt">Play the score</span></button>
+        <label for="speed">Tempo <select id="speed"><option value="slow">Slow</option><option value="normal" selected>Normal</option><option value="fast">Fast</option></select></label>
+        <span class="tp-hint">Point at any dot or mark on the score to see what it is.</span>
+      </div>
       <div class="scroll" id="scroll">
         <div class="canvases" id="canvases"><canvas id="base" aria-label="Score of planetary motion"></canvas><canvas id="over" aria-hidden="true"></canvas></div>
       </div>
@@ -253,6 +265,7 @@ body{margin:0}
       <p class="r-sub" id="rSub"></p>
       <canvas id="dial" width="230" height="230" aria-label="Zodiac wheel at the playhead"></canvas>
       <p class="ticker" id="ticker" aria-live="polite"></p>
+      <div class="tt" id="tt" hidden></div>
       <h3>Sounding now</h3>
       <ul id="active"></ul>
       <p class="next" id="next"></p>
@@ -275,7 +288,7 @@ body{margin:0}
     <div>
       <h2>Listening</h2>
       <dl>
-        <dt>planet voices</dt><dd>Tap a planet in the Voices row, or its name on the score, to hear it alone. Each planet is a real instrument in its own place left to right: the Sun a French horn, the Moon a flute, Mercury a marimba, Venus a celesta, Mars a trombone, Jupiter a church organ, Saturn a cello, Uranus a harpsichord trill, Neptune a choir, Pluto a timpani heartbeat. Each plays its note in a rhythm that quickens when the planet moves fast. Its pitch follows its speed, the way Kepler wrote each planet a melody in <i>Harmonices Mundi</i> (1619). Fast is high. Mercury's ticks, Mars's growl and Pluto's heartbeat also speed up and slow down with the planet. A station slides down an octave. Retrograde sounds muffled.</dd>
+        <dt>planet voices</dt><dd>The box beside each planet on the score turns its sound on or off. Tap a planet's name, or its chip in the Voices row, to hear it alone. Each planet is a real instrument in its own place left to right: the Sun a French horn, the Moon a flute, Mercury a marimba, Venus a celesta, Mars a trombone, Jupiter a church organ, Saturn a cello, Uranus a harpsichord trill, Neptune a choir, Pluto a timpani heartbeat. Each plays its note in a rhythm that quickens when the planet moves fast. Its pitch follows its speed, the way Kepler wrote each planet a melody in <i>Harmonices Mundi</i> (1619). Fast is high. Mercury's ticks, Mars's growl and Pluto's heartbeat also speed up and slow down with the planet. A station slides down an octave. Retrograde sounds muffled.</dd>
         <dt>aspect chords</dt><dd>While a trine or sextile is in orb the strings hold a major chord. A square or opposition holds a minor chord on trembling strings with a clashing note that never resolves. The two planets' own instruments keep sounding the chord together, so Mars square Venus is the trombone and the celesta.Each contact plays two tones set to its interval. Trines and sextiles are pure, sweet intervals (a fifth, a sixth). Squares and oppositions are buzzy and rub (a tritone, a minor ninth). Conjunctions are two voices on one note. Easy aspects start with a slow wobble that calms as they close and locks into harmony at exact. Hard aspects go the other way: the closer they get, the faster and harsher the rub, with a clashing half step added, and nothing resolves.</dd>
         <dt>major/minor bed</dt><dd>A soft chord sits under everything. It is major while harmony leads, turns minor as tension grows, and goes diminished with a clashing half step when tension takes over. You can hear a hard week coming before you read about it.</dd>
         <dt>bells</dt><dd>Every aspect in orb keeps ringing for as long as it is felt, softly at first and quicker and louder as it closes. Easy aspects ring two sweet notes, hard ones two clashing notes. At exact the big bells ring. An easy aspect rings a rising major chord that sounds finished. A hard aspect strikes three clashing bells at once that hang in the air unresolved. Deep gongs mark stations, and bright gold bells ring when two planets meet in the sky or the Moon turns new or full.</dd>
@@ -608,7 +621,7 @@ const mondayOf = ms => { const d = new Date(ms); return new Date(d.getFullYear()
 const monthOf = ms => { const d = new Date(ms); return new Date(d.getFullYear(), d.getMonth(), 1).getTime(); };
 const state = {
   view:'year', people: loadPeople(), chartOf:'A', yearStart: monthOf(now), monthStart: monthOf(now),
-  ms: now, playing:false, speed:'normal', layers:{voices:true, chords:true, bells:true, mood:true}, sound:'orchestra', year:null, plan:null, selDay:null, solo:null, holding:false, stopAt:null, subject:'A', weekStart: mondayOf(now)
+  ms: now, playing:false, speed:'normal', layers:{voices:true, chords:true, bells:true, mood:true}, sound:'orchestra', year:null, plan:null, selDay:null, solo:null, holding:false, stopAt:null, muted:new Set(), subject:'A', weekStart: mondayOf(now)
 };
 const RATES = {year:{slow:3, normal:9, fast:24}, week:{slow:.05, normal:.1, fast:.25}, month:{slow:.05, normal:.1, fast:.3}};
 const DAYRATE = {slow:1/40, normal:1/20, fast:1/8};
@@ -627,7 +640,41 @@ const kindColor = k => k === 'soft' ? TK.cool : (k === 'hard' ? TK.warm : TK.gol
 /* ---------- canvas helpers ---------- */
 const base = $('#base'), over = $('#over'), dial = $('#dial');
 over.addEventListener('pointermove', e => { if (dragging || !LAY) return; const r = over.getBoundingClientRect(); const px = e.clientX - r.left, py = e.clientY - r.top;
-  over.style.cursor = (LAY.rows && px < LAY.L - 6 && py >= LAY.rTop && py < LAY.rTop + LAY.rows.length * LAY.rowH) ? 'pointer' : 'ew-resize'; });
+  const h = hotAt(px, py); showTip(h, e.clientX, e.clientY);
+  over.style.cursor = h || (LAY.rows && px < LAY.L - 6 && py >= LAY.rTop && py < LAY.rTop + LAY.rows.length * LAY.rowH) ? 'pointer' : 'ew-resize'; });
+over.addEventListener('pointerleave', () => showTip(null));
+over.addEventListener('pointerdown', e => { if (!LAY) return; const r = over.getBoundingClientRect(); const h = hotAt(e.clientX - r.left, e.clientY - r.top); if (h) showTip(h, e.clientX, e.clientY); });
+/* what each mark on the score means, with a little of how it may feel */
+const FEEL = {soft: 'Feels like ease, warmth, a door opening.', hard: 'Feels like friction and pressure that wants action.', fusion: 'Feels intense and focused, two forces as one.', mixed: 'Feels dreamy and unclear, easy to misread.'};
+const KIND_WORD = {soft: 'harmony', hard: 'tension', fusion: 'meeting', mixed: 'blur'};
+const STATION_MEAN = {
+  Mercury: ['Talk and plans slow down and loop back. Good for revising and reconnecting, poor for signing.', 'Messages and plans start moving again. Wait a few days before big launches.'],
+  Venus: ['Old loves and old values come back for review. Hold off on big purchases and new romance.', 'Affection and pleasure move forward again. What you learned about love settles.'],
+  Mars: ['Drive turns inward. Anger simmers; rework instead of push.', 'Energy comes back. Projects that stalled can move.'],
+  Jupiter: ['Growth turns inward. A season to reflect on what you believe.', 'Opportunities open outward again.'],
+  Saturn: ['Rules, limits and duties come up for review.', 'Structures firm up. Commitments can be made.'],
+  Uranus: ['Change works underground for a while.', 'Surprises and breakthroughs pick up speed.'],
+  Neptune: ['The fog lifts a little and illusions show.', 'Dreams and longing flow outward again.'],
+  Pluto: ['Deep change works out of sight.', 'What was buried starts to surface and transform.']
+};
+function toggleMute(b){ if (state.muted.has(b)) state.muted.delete(b); else state.muted.add(b); if (state.solo === b) setSolo(null); render(); if (state.playing || state.holding) audioUpdate(state.ms); }
+function hotAt(px, py){ if (!LAY || !LAY.hots) return null; let best = null, bd = 1e9;
+  for (const h of LAY.hots){ const d = Math.hypot(h.x - px, h.y - py); if (d <= h.r + 3 && d < bd){ bd = d; best = h; } } return best; }
+const whenTxt = ms => new Date(ms).toLocaleDateString('en-GB', {weekday:'short', day:'numeric', month:'short'}) + ', ' + new Date(ms).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+function hotHTML(h){
+  const e = h.e;
+  if (h.kind === 'mute') return `<b>${h.b}: sound ${state.muted.has(h.b) ? 'off' : 'on'}</b><p>Tap the box to turn ${h.b}'s instrument and its aspects ${state.muted.has(h.b) ? 'on' : 'off'}. Tap the name to hear ${h.b} alone.</p>`;
+  if (h.kind === 'exact'){ const c = state.plan; return `<b>${planSentence(e.t, e.asp, e.tg, c)}</b><span class="tt-when">exact ${whenTxt(e.ms)} · ${KIND_WORD[e.kind]}</span><span class="tt-feel">${FEEL[e.kind]}</span><p>${reading({t: e.t, asp: e.asp, tg: e.tg, kind: e.kind}, c)}</p>`; }
+  if (h.kind === 'yexact'){ const k = e.asp.kind; return `<b>${e.t} ${e.asp.verb} your ${e.n}</b><span class="tt-when">exact ${whenTxt(e.ms)} · ${KIND_WORD[k]}</span><span class="tt-feel">${FEEL[k]}</span><p>${ASP_LINE[e.asp.k](THEME[e.t], 'your ' + TARGET_MEAN[e.n])} ${ADVICE[e.t][k === 'hard' ? 0 : 1]}</p>`; }
+  if (h.kind === 'station'){ const sm = STATION_MEAN[h.b] || ['', '']; return `<b>${h.b} turns ${h.dir === 'R' ? 'retrograde' : 'direct'}</b><span class="tt-when">${whenTxt(h.ms)} · standing still</span><p>${h.dir === 'R' ? sm[0] : sm[1]}</p>`; }
+  if (h.kind === 'phase'){ const i = {'New Moon': 0, 'First quarter': 2, 'Full Moon': 4, 'Last quarter': 6}[e.name]; return `<b>${e.name} in ${SIGN_NAMES[e.sign]}</b><span class="tt-when">${whenTxt(e.ms)}</span><span class="tt-feel">${cap(PHASES[i][1])}.</span><p>The Moon in ${SIGN_NAMES[e.sign]} is ${MOON_SIGN[e.sign]}.</p>`; }
+  if (h.kind === 'meet') return `<b>${e.a} meets ${e.b} in the sky</b><span class="tt-when">${whenTxt(e.ms)} · meeting</span><span class="tt-feel">${FEEL.fusion}</span><p>${cap(THEME[e.a])} and ${THEME[e.b]} merge for a while, for everyone.</p>`;
+  return '';
+}
+function showTip(h, cx, cy){ const tt = $('#tt'); if (!h){ tt.hidden = true; return; }
+  tt.innerHTML = hotHTML(h); tt.hidden = false; const w = tt.offsetWidth, hh = tt.offsetHeight;
+  let x = cx + 14, y = cy + 14; if (x + w > innerWidth - 8) x = cx - w - 14; if (y + hh > innerHeight - 8) y = cy - hh - 14;
+  tt.style.left = Math.max(8, x) + 'px'; tt.style.top = Math.max(8, y) + 'px'; }
 function sizeCanvas(cv, w, h){
   const dpr = Math.min(2, window.devicePixelRatio || 1);
   cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.width = w + 'px'; cv.style.height = h + 'px';
@@ -652,7 +699,7 @@ function drawYear(){
   lay.rTop = lay.wTop + lay.wH + 10; lay.lTop = lay.rTop + ROWS.length * lay.rowH + 8;
   lay.H = lay.lTop + lay.lHead + Math.max(1, m.lanes.length) * lay.laneH + 14; lay.W = W; lay.plotW = W - lay.L - lay.R;
   lay.X = ms => lay.L + (ms - m.startMs) / (m.endMs - m.startMs) * lay.plotW;
-  LAY = lay;
+  LAY = lay; lay.hots = [];
   const ctx = sizeCanvas(base, W, lay.H); sizeCanvas(over, W, lay.H);
   ctx.fillStyle = TK.panel; ctx.fillRect(0, 0, W, lay.H);
   const X = lay.X, plotW = lay.plotW;
@@ -682,7 +729,7 @@ function drawYear(){
   ctx.fillStyle = TK.ink; ctx.font = `italic 15px ${BODYF}`; ctx.fillText('Intensity', 14, wy);
   ctx.font = `10px ${MONOF}`; ctx.fillStyle = TK.cool; ctx.fillText('harmony ↑', 14, wy - 20); ctx.fillStyle = TK.warm; ctx.fillText('tension ↓', 14, wy + 20);
   for (const e of m.meets){
-    const x = X(e.ms); ctx.fillStyle = TK.gold;
+    const x = X(e.ms); ctx.fillStyle = TK.gold; lay.hots.push({x, y: wy, r: 7, kind: 'meet', e});
     ctx.beginPath(); ctx.moveTo(x, wy - 5); ctx.lineTo(x + 5, wy); ctx.lineTo(x, wy + 5); ctx.lineTo(x - 5, wy); ctx.closePath(); ctx.fill();
     ctx.font = `12px ${GLYPHF}`; ctx.textAlign = 'center'; ctx.fillText(glyph(e.a) + '☌' + VS + glyph(e.b), x, lay.wTop + 8); ctx.textAlign = 'left';
   }
@@ -706,7 +753,7 @@ function drawYear(){
     }
     ctx.globalAlpha = 1;
     for (const e of m.exacts) if (e.t === ln.t && e.n === ln.n && e.asp.k === ln.asp.k && e.ms >= m.startMs && e.ms <= m.endMs){
-      const x = X(e.ms); ctx.beginPath(); ctx.arc(x, cy, 4, 0, Math.PI * 2); ctx.fillStyle = TK.panel; ctx.fill(); ctx.strokeStyle = TK.ink; ctx.lineWidth = 1.4; ctx.stroke(); ctx.lineWidth = 1;
+      const x = X(e.ms); lay.hots.push({x, y: cy, r: 7, kind: 'yexact', e}); ctx.beginPath(); ctx.arc(x, cy, 4, 0, Math.PI * 2); ctx.fillStyle = TK.panel; ctx.fill(); ctx.strokeStyle = TK.ink; ctx.lineWidth = 1.4; ctx.stroke(); ctx.lineWidth = 1;
     }
   });
 }
@@ -745,7 +792,7 @@ function drawPlanetRows(ctx, lay, m, bodies){
     ctx.setLineDash([]); ctx.lineWidth = 1;
     const sts = m.stations ? m.stations.filter(st => st.b === b && st.ms >= m.startMs && st.ms <= m.endMs).map(st => ({x: X(st.ms) - lay.L, dir: st.dir, ms: st.ms})) : stationsHere;
     for (const st of sts){
-      const x = lay.L + st.x; fermata(ctx, x, cy - 21, TK.ink);
+      const x = lay.L + st.x; fermata(ctx, x, cy - 21, TK.ink); lay.hots.push({x, y: cy - 17, r: 9, kind: 'station', b, dir: st.dir, ms: st.ms});
       ctx.font = `9.5px ${MONOF}`; ctx.fillStyle = TK.ink; const txt = (st.dir === 'R' ? 'Rx ' : 'D ') + shortDate(st.ms); const tw = ctx.measureText(txt).width;
       const left = st.dir === 'R' && x - 9 - tw > lay.L; const rightEdge = x + 9 + tw > lay.L + plotW;
       ctx.fillText(txt, (left || rightEdge) ? x - 9 - tw : x + 9, cy - 16);
@@ -755,12 +802,21 @@ function drawPlanetRows(ctx, lay, m, bodies){
     else for (const ing of ingressHere) ctx.fillText(SIGNS[ing.sign] + VS, lay.L + ing.x, cy + 18);
     /* exact hits: a ring on the staff with the point it hits */
     if (m.kind === 'plan') for (const e of m.exacts) if (e.t === b){
-      const x = X(e.ms); ctx.beginPath(); ctx.arc(x, cy, 4.2, 0, Math.PI * 2); ctx.fillStyle = TK.panel; ctx.fill(); ctx.strokeStyle = kindColor(e.kind); ctx.lineWidth = 1.8; ctx.stroke(); ctx.lineWidth = 1;
+      const x = X(e.ms); lay.hots.push({x, y: cy, r: 7, kind: 'exact', e}); ctx.beginPath(); ctx.arc(x, cy, 4.2, 0, Math.PI * 2); ctx.fillStyle = TK.panel; ctx.fill(); ctx.strokeStyle = kindColor(e.kind); ctx.lineWidth = 1.8; ctx.stroke(); ctx.lineWidth = 1;
       if (b !== 'Moon' || lay.plotW / m.days > 60){ ctx.font = `10px ${GLYPHF}`; ctx.fillStyle = kindColor(e.kind); ctx.fillText(e.asp.g + VS + glyph(e.tg.b), x, cy - 11); }
     }
     ctx.textAlign = 'left';
+    const off = state.muted.has(b);
+    if (off){ ctx.fillStyle = TK.panel; ctx.globalAlpha = .62; ctx.fillRect(lay.L, cy - lay.rowH / 2 + 1, plotW, lay.rowH - 2); ctx.globalAlpha = 1; }
+    /* on/off box for this planet's sound */
+    const bx = lay.L - 26, by = cy - 8; ctx.lineWidth = 1.4; ctx.strokeStyle = off ? TK.muted : col; ctx.fillStyle = off ? TK.panel : col;
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(bx, by, 16, 16, 3) : ctx.rect(bx, by, 16, 16); ctx.fill(); ctx.stroke();
+    if (!off){ ctx.strokeStyle = TK.panel; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(bx + 4, by + 8.5); ctx.lineTo(bx + 7, by + 11.5); ctx.lineTo(bx + 12.5, by + 5); ctx.stroke(); }
+    ctx.lineWidth = 1; lay.hots.push({x: bx + 8, y: cy, r: 9, kind: 'mute', b});
+    ctx.globalAlpha = off ? .45 : 1;
     ctx.font = `17px ${GLYPHF}`; ctx.fillStyle = col; ctx.fillText(glyph(b), 14, cy);
     ctx.font = `14px ${BODYF}`; ctx.fillStyle = TK.ink; ctx.fillText(b, 36, cy - 1);
+    ctx.globalAlpha = 1;
     const s0 = sample(m.S, b, m.startMs);
     ctx.font = `10px ${MONOF}`; ctx.fillStyle = TK.muted; ctx.fillText(`${Math.floor(s0.lon % 30)}° ${SIGN_NAMES[Math.floor(s0.lon / 30)].slice(0,3)}`, 36, cy + 13);
   });
@@ -771,7 +827,7 @@ function drawPlanner(){
   const c = state.plan; const wk = state.view === 'week'; const W = canvasWidth(wk ? 720 : 680);
   const single = c.staves.length === 1;
   const lay = {L:136, R:18, axisH:30, rowH: single ? 110 : 60}; const stH = c.staves.length * lay.rowH; lay.moonY = lay.axisH + stH + 12; lay.rTop = lay.moonY + 16; lay.prow = 44; lay.H = lay.rTop + ALL.length * lay.prow + 8; lay.W = W; lay.plotW = W - lay.L - lay.R;
-  lay.X = ms => lay.L + (ms - c.startMs) / (c.endMs - c.startMs) * lay.plotW; LAY = lay;
+  lay.X = ms => lay.L + (ms - c.startMs) / (c.endMs - c.startMs) * lay.plotW; LAY = lay; lay.hots = [];
   const ctx = sizeCanvas(base, W, lay.H); sizeCanvas(over, W, lay.H);
   ctx.fillStyle = TK.panel; ctx.fillRect(0, 0, W, lay.H);
   const X = lay.X, dayW = lay.plotW / c.days; ctx.textBaseline = 'middle';
@@ -801,11 +857,11 @@ function drawPlanner(){
     if (si === 0){ ctx.font = `10px ${MONOF}`; ctx.fillStyle = TK.cool; ctx.fillText('harmony ↑', 14, cy - 20); ctx.fillStyle = TK.warm; ctx.fillText('tension ↓', 14, cy + 16); }
     if (key === 'shared'){ ctx.font = `10px ${MONOF}`; ctx.fillStyle = TK.muted; ctx.fillText('composite', 14, cy + 15); }
     for (const e of c.exacts) if (e.tg.own === key){
-      const x = X(e.ms), r = e.t === 'Moon' ? 2.6 : 3.8; ctx.beginPath(); ctx.arc(x, cy, r, 0, Math.PI * 2); ctx.fillStyle = TK.panel; ctx.fill(); ctx.strokeStyle = kindColor(e.kind); ctx.lineWidth = 1.6; ctx.stroke(); ctx.lineWidth = 1;
+      const x = X(e.ms), r = e.t === 'Moon' ? 2.6 : 3.8; lay.hots.push({x, y: cy, r: 7, kind: 'exact', e}); ctx.beginPath(); ctx.arc(x, cy, r, 0, Math.PI * 2); ctx.fillStyle = TK.panel; ctx.fill(); ctx.strokeStyle = kindColor(e.kind); ctx.lineWidth = 1.6; ctx.stroke(); ctx.lineWidth = 1;
     }
   });
   const my = lay.moonY; ctx.font = `10px ${MONOF}`; ctx.fillStyle = TK.muted; ctx.fillText('moon', 14, my);
-  for (const p of c.phases){ const x = X(p.ms); ctx.strokeStyle = TK.gold; ctx.fillStyle = TK.gold; ctx.lineWidth = 1.3;
+  for (const p of c.phases){ const x = X(p.ms); lay.hots.push({x, y: my, r: 8, kind: 'phase', e: p}); ctx.strokeStyle = TK.gold; ctx.fillStyle = TK.gold; ctx.lineWidth = 1.3;
     ctx.beginPath(); ctx.arc(x, my, 5, 0, Math.PI * 2); ctx.stroke();
     if (p.name === 'New Moon'){ ctx.beginPath(); ctx.arc(x, my, 5, 0, Math.PI * 2); ctx.fill(); }
     else if (p.name !== 'Full Moon'){ ctx.beginPath(); ctx.arc(x, my, 5, -Math.PI / 2, Math.PI / 2, p.name === 'Last quarter'); ctx.closePath(); ctx.fill(); }
@@ -832,6 +888,7 @@ function msFromX(px){ const m = model(); return clamp(m.startMs + (px - LAY.L) /
 let dragging = false;
 over.addEventListener('pointerdown', e => {
   const r = over.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top;
+  const hm0 = hotAt(px, py); if (hm0 && hm0.kind === 'mute'){ toggleMute(hm0.b); return; }
   if (LAY.rows && px < LAY.L - 6 && py >= LAY.rTop && py < LAY.rTop + LAY.rows.length * LAY.rowH){ const b = LAY.rows[Math.floor((py - LAY.rTop) / LAY.rowH)]; setSolo(b === state.solo ? null : b); return; }
   dragging = true; over.setPointerCapture(e.pointerId); scrub(e); });
 over.addEventListener('pointermove', e => { if (dragging) scrub(e); });
@@ -1090,7 +1147,7 @@ function orchUpdate(ms){
   const C = AU.ctx, t = C.currentTime, m = model(); AU.next = AU.next || {}; AU.pads = AU.pads || new Map();
   for (const b of voiceList()){
     const V = ORCH_VOICE[b]; const smp = sample(m.S, b, ms); const r = Math.min(1, Math.abs(smp.spd) / PLANETS[b].max);
-    const audible = state.solo ? b === state.solo : state.layers.voices; if (!audible){ AU.next[b] = 0; continue; }
+    const audible = state.solo ? b === state.solo : state.layers.voices && !state.muted.has(b); if (!audible){ AU.next[b] = 0; continue; }
     if (!AU.next[b] || AU.next[b] < t - 1) AU.next[b] = t + Math.random() * .5;
     if (t < AU.next[b]) continue;
     const retro = smp.spd < 0; const f = quantize(freqOf(b, smp.spd), AU.minor); const g = V.lvl * (state.solo ? 2.2 : 1) * (retro ? .7 : 1);
@@ -1102,7 +1159,7 @@ function orchUpdate(ms){
   }
   /* held chords for the strongest aspects, swelling as they close */
   const keep = new Set(); const on = state.layers.chords && !state.solo && state.playing;
-  for (const c of contactsNow.slice(0, 3)){ if (c.v < .08) continue; const kind = c.kind || c.asp.kind; const key = c.key + kind; keep.add(key);
+  for (const c of contactsNow.filter(x => !state.muted.has(x.t)).slice(0, 3)){ if (c.v < .08) continue; const kind = c.kind || c.asp.kind; const key = c.key + kind; keep.add(key);
     let pad = AU.pads.get(key); const f = rootOf(c.t) / 2;
     if (!pad){ const inst = kind === 'hard' ? 'tremolo_strings' : 'string_ensemble_1'; pad = {notes: chordTones(f, kind).map(x => loopNote(inst, x)), dead: 0}; AU.pads.set(key, pad); }
     pad.dead = 0; pad.notes.forEach((n, i) => { const lvl = (kind === 'hard' && i === 3 ? .6 * c.v : 1) * (.05 + .16 * c.v); n.g.gain.setTargetAtTime(on ? lvl : 0, t, .4);
@@ -1110,7 +1167,7 @@ function orchUpdate(ms){
   for (const [k, pad] of AU.pads) if (!keep.has(k)){ for (const n of pad.notes) n.g.gain.setTargetAtTime(0, t, .5); if (++pad.dead > 150){ for (const n of pad.notes) n.stop(t + .1); AU.pads.delete(k); } }
   /* the two planets' own instruments sound the aspect again and again while it is felt */
   if (state.playing && !state.solo && state.layers.bells){ const nowT = performance.now();
-    for (const c of contactsNow.slice(0, 4)){ if (c.v < .12) continue; const kind = c.kind || c.asp.kind; const period = (kind === 'hard' ? 1700 : 2300) - 900 * c.v;
+    for (const c of contactsNow.filter(x => !state.muted.has(x.t)).slice(0, 4)){ if (c.v < .12) continue; const kind = c.kind || c.asp.kind; const period = (kind === 'hard' ? 1700 : 2300) - 900 * c.v;
       if (nowT - (AU.tolls.get(c.key) || 0) < period) continue; AU.tolls.set(c.key, nowT);
       const target = c.nb || (c.tg && c.tg.b); const A = ORCH_VOICE[c.t], B = ORCH_VOICE[target] || A; const f = rootOf(c.t); const g = (.12 + .22 * c.v) * (c.t === 'Moon' ? .7 : 1);
       playNote(A.inst, f, {gain: g, dur: 1.6, pan: VOICE[c.t].pan});
@@ -1142,7 +1199,7 @@ function audioUpdate(ms){
     if (v.noiseBp) v.noiseBp.frequency.setTargetAtTime(f, t, .06);
     v.lp.frequency.setTargetAtTime(s < 0 ? v.D.cut * .35 : v.D.cut, t, .2);
     if (v.pulse) v.pulse.frequency.setTargetAtTime(pulseRate(b, r), t, .2);
-    v.out.gain.setTargetAtTime((state.solo ? (b === state.solo ? .2 : 0) : gain) * v.D.lvl, t, .15);
+    v.out.gain.setTargetAtTime((state.solo ? (b === state.solo ? .2 : 0) : state.muted.has(b) ? 0 : gain) * v.D.lvl, t, .15);
   }
   const keep = new Set();
   for (const c of contactsNow.slice(0, 6)){
@@ -1264,7 +1321,7 @@ let tickerTimer = null;
 function ticker(text){ const el = $('#ticker'); el.textContent = '♪ ' + text; el.style.opacity = 1; clearTimeout(tickerTimer); tickerTimer = setTimeout(() => { el.style.opacity = .35; }, 2600); }
 let lastFire = state.ms;
 function fireEvents(a, b){
-  for (const e of model().events){ if (e.ms <= a || e.ms > b) continue;
+  for (const e of model().events){ if (e.ms <= a || e.ms > b) continue; if (state.muted.has(e.t || e.b || e.a)) continue;
     if (e.type === 'phase'){ bell(e.name === 'Full Moon' || e.name === 'New Moon' ? 196 : 294, 'fusion', .13); }
     else if (e.type === 'station'){ let f = PLANETS[e.b].base / 2; while (f < 70) f *= 2; bell(f, 'gong', .2); }
     else if (e.type === 'meet'){ let f = PLANETS[e.a].base * 2; while (f > 900) f /= 2; bell(f, 'fusion', .16); }
@@ -1276,7 +1333,7 @@ function fireEvents(a, b){
 /* ---------- transport ---------- */
 let lastT = 0;
 function setPlaying(on){
-  state.playing = on; $('#playIco').textContent = on ? '❚❚' : '▶︎'; $('#playTxt').textContent = on ? 'Pause' : 'Play';
+  state.playing = on; $('#playIco').textContent = on ? '❚❚' : '▶︎'; $('#playTxt').textContent = on ? 'Pause' : 'Play the score';
   state.holding = false;
   if (on){ audioInit(); if (state.sound === 'orchestra') loadOrchestra(); const m = model(); if (!state.stopAt && state.ms >= m.endMs - DAY * .2) state.ms = m.startMs; lastFire = state.ms; lastT = performance.now(); requestAnimationFrame(loop); }
   else { audioHush(); hushOrch(); state.stopAt = null; }
