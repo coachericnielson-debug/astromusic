@@ -143,6 +143,36 @@ body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:
 .pform button.save{font:inherit;background:var(--ink);color:var(--panel);border:0;border-radius:4px;padding:6px 16px;cursor:pointer}
 .pform .note{grid-column:1/-1;margin:0;font-size:.83rem;color:var(--muted)}
 .pform input:focus-visible,.pform select:focus-visible,.pform button:focus-visible,.linkbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* week overview + planner grid */
+.wover{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:14px;margin-bottom:12px}
+.wover .box{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:12px 16px;min-width:0}
+.wover h3,.wh{margin:0 0 8px;font-family:var(--display);font-weight:500;font-style:italic;font-size:1.25rem}
+.wh{margin:16px 0 8px}
+.mv{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px;font-size:.9rem}
+.mv li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:6px;align-items:baseline}
+.mv .g{font-size:1rem}
+.mv .st{font-family:var(--mono);font-size:.74rem;color:var(--muted)}
+.mv .ev{color:var(--gold)}
+.arcs{display:flex;flex-direction:column;gap:10px;font-size:.9rem}
+.arcs h4{margin:0 0 4px;font-size:.82rem;font-family:var(--mono);font-weight:400;color:var(--muted)}
+.arcs ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px}
+.arcs li span.when{font-family:var(--mono);font-size:.74rem;color:var(--muted)}
+.arcs li small{display:block;color:var(--muted);font-size:.84rem;line-height:1.35}
+.wgrid-wrap{overflow-x:auto;background:var(--panel);border:1px solid var(--rule);border-radius:6px}
+.wgrid{display:grid;grid-template-columns:86px repeat(7,minmax(118px,1fr));min-width:920px}
+.wgrid .gh{padding:8px 8px 6px;border-bottom:1px solid var(--rule);font-family:var(--display);font-size:1.02rem}
+.wgrid .gh small{display:block;font-family:var(--body);font-size:.76rem;color:var(--muted)}
+.wgrid .gl{padding:8px;font-size:.8rem;color:var(--muted);font-style:italic;border-bottom:1px solid var(--rule)}
+.wgrid .gc{padding:6px 7px;border-left:1px solid var(--rule);border-bottom:1px solid var(--rule);display:flex;flex-direction:column;gap:4px;min-height:64px;font-size:.78rem;line-height:1.25;cursor:pointer;
+  background:linear-gradient(180deg, color-mix(in srgb, var(--cool) calc(var(--h,0) * 30%), transparent), color-mix(in srgb, var(--warm) calc(var(--t,0) * 30%), transparent))}
+.wgrid .gc:hover{outline:1px solid var(--accent);outline-offset:-1px}
+.wgrid .gc.today{box-shadow:inset 0 3px 0 var(--accent)}
+.ch{border-left:3px solid currentColor;padding-left:5px;color:var(--ink)}
+.ch.k-soft{border-color:var(--cool)} .ch.k-hard{border-color:var(--warm)} .ch.k-fusion,.ch.k-mixed{border-color:var(--gold)}
+.ch.ex{font-weight:500}
+.ch .tm{font-family:var(--mono);font-size:.7rem;color:var(--muted);margin-right:3px}
+.mn{color:var(--muted);font-size:.74rem}
+@media (max-width:900px){ .wover{grid-template-columns:minmax(0,1fr)} }
 /* week */
 .week{display:flex;flex-direction:column;gap:10px}
 .wday{display:grid;grid-template-columns:150px minmax(0,1fr);gap:4px 18px;border:1px solid var(--rule);border-radius:6px;padding:14px 16px;cursor:pointer;
@@ -257,7 +287,11 @@ body{margin:0}
         <div class="canvases" id="canvases"><canvas id="base" aria-label="Score of planetary motion"></canvas><canvas id="over" aria-hidden="true"></canvas></div>
       </div>
       <div id="weekWrap" hidden>
+        <section class="wover" id="wOver"></section>
         <p class="backdrop" id="wBackdrop"></p>
+        <h3 class="wh">The week as a planner</h3>
+        <div class="wgrid-wrap"><div class="wgrid" id="wGrid"></div></div>
+        <h3 class="wh">Day by day</h3>
         <div class="week" id="week"></div>
       </div>
       <div id="calendarWrap" hidden>
@@ -1029,11 +1063,78 @@ function renderCalendar(){
   });
   $('#cal').innerHTML = html;
 }
+const SPEED_WORD = (b, spd) => { const r = spd / PLANETS[b].max; return r < -.02 ? 'retrograde' : Math.abs(r) < .12 ? 'nearly still' : r < .45 ? 'slowing' : r > .85 ? 'moving fast' : 'steady'; };
+const posTxt = lon => `${Math.floor(lon % 30)}° ${SIGN_NAMES[Math.floor(lon / 30)]}`;
+/* what each planet does across the week: where it goes, how it moves, sign changes and stations */
+function movementHTML(c){
+  const items = ALL.map(b => {
+    const a = sample(c.S, b, c.startMs), z = sample(c.S, b, c.endMs - HOUR); const evs = [];
+    let prevS = null, prevSg = null;
+    for (let i = 0; i < c.n; i++){ const ms = c.startMs + i * (DAY / c.PER); const L = norm360(c.S.lon[b][i]), sp = c.S.spd[b][i], sg = Math.floor(L / 30);
+      if (prevSg !== null && sg !== prevSg && b !== 'Moon') evs.push(`enters ${SIGN_NAMES[sg]} ${shortDate(ms)}`);
+      if (prevS !== null && Math.sign(sp) !== Math.sign(prevS)) evs.push(`turns ${sp < 0 ? 'retrograde' : 'direct'} ${shortDate(ms)}`);
+      prevS = sp; prevSg = sg; }
+    if (b === 'Moon'){ const signs = []; for (let i = 0; i < c.n; i += 6){ const sg = SIGN_NAMES[Math.floor(norm360(c.S.lon.Moon[i]) / 30)]; if (signs[signs.length - 1] !== sg) signs.push(sg); }
+      const ph = c.phases.map(p => `${p.name} ${shortDate(p.ms)}`); return `<li><span class="g" style="color:var(--moon)">${glyph(b)}</span><span><b>Moon</b> moves through ${signs.join(', ')}. <span class="ev">${ph.join(' · ')}</span></span></li>`; }
+    const same = Math.floor(a.lon / 30) === Math.floor(z.lon / 30);
+    return `<li><span class="g" style="color:var(--${b.toLowerCase()})">${glyph(b)}</span><span><b>${b}</b> ${same ? `${Math.floor(a.lon % 30)}° to ${Math.floor(z.lon % 30)}° ${SIGN_NAMES[Math.floor(z.lon / 30)]}` : `${posTxt(a.lon)} to ${posTxt(z.lon)}`} <span class="st">${SPEED_WORD(b, (a.spd + z.spd) / 2)}</span>${evs.length ? ` <span class="ev">${evs.join(' · ')}</span>` : ''}</span></li>`;
+  });
+  return `<ul class="mv">${items.join('')}</ul>`;
+}
+/* each aspect's arc this week: peaking (exact inside the week), building, or fading */
+function arcsHTML(c){
+  const start = planContacts(c.startMs + HOUR), end = planContacts(c.endMs - HOUR); const map = new Map();
+  const keyOf = x => x.t + '|' + x.tg.own + x.tg.b + '|' + x.asp.k;
+  for (const e of c.exacts) if (e.t !== 'Moon'){ const k = keyOf(e); if (!map.has(k)) map.set(k, {x: {t: e.t, tg: e.tg, asp: e.asp, kind: e.kind}, peak: e.ms}); }
+  for (const x of start.concat(end)) if (x.t !== 'Moon'){ const k = keyOf(x); if (map.has(k)) continue;
+    const a = start.find(y => keyOf(y) === k), z = end.find(y => keyOf(y) === k);
+    const status = !a ? 'building' : !z ? 'fading' : (z.orb < a.orb ? 'building' : 'fading'); map.set(k, {x, status, orb: (z || a).orb}); }
+  const peak = [], build = [], fade = [];
+  for (const v of map.values()){ if (v.peak) peak.push(v); else if (v.status === 'building') build.push(v); else fade.push(v); }
+  peak.sort((p, q) => p.peak - q.peak);
+  const li = (v, when) => `<li><span class="k-${v.x.kind === 'mixed' ? 'fusion' : v.x.kind}">●</span> <b>${planSentence(v.x.t, v.x.asp, v.x.tg, c)}</b> <span class="when">${when}</span><small>${reading(v.x, c)}</small></li>`;
+  const sec = (title, arr, fn) => arr.length ? `<div><h4>${title}</h4><ul>${arr.slice(0, 6).map(fn).join('')}</ul></div>` : '';
+  const html = sec('peaking this week', peak, v => li(v, 'exact ' + whenTxt(v.peak))) + sec('building toward next week', build, v => li(v, fmtOrb(v.orb) + ' and closing')) + sec('fading out', fade, v => li(v, fmtOrb(v.orb) + ' and leaving'));
+  return `<div class="arcs">${html || '<p class="sky">Few planets touch the chart this week. A light week.</p>'}</div>`;
+}
+/* the planner grid: four blocks a day, with what is active in each */
+const BLOCKS = [['night', 0], ['morning', 6], ['afternoon', 12], ['evening', 18]];
+function gridHTML(c){
+  let html = '<div class="gl" style="border-bottom:1px solid var(--rule)"></div>';
+  const today = new Date();
+  for (let d = 0; d < c.days; d++){ const dt = new Date(dayStart(c, d)); const di = c.dayInfo[d];
+    html += `<div class="gh">${dt.toLocaleDateString('en-GB', {weekday:'short', day:'numeric'})}<small>☽ ${SIGN_NAMES[di.moonSign]} · ${di.tag}</small></div>`; }
+  for (const [name, h0] of BLOCKS){
+    html += `<div class="gl">${name}<br><span class="mn">${String(h0).padStart(2, '0')}–${String(h0 + 6).padStart(2, '0')}</span></div>`;
+    for (let d = 0; d < c.days; d++){
+      const b0 = dayStart(c, d) + h0 * HOUR, b1 = b0 + 6 * HOUR; const best = new Map(); let hh = 0, tt = 0;
+      for (let k = 0; k < 6; k++){ const list = planContacts(b0 + (k + .5) * HOUR);
+        for (const x of list){ if (x.v < .2 || state.muted.has(x.t)) continue; const kk = x.kind || x.asp.kind; if (kk === 'soft') hh += x.v * x.w; else if (kk === 'hard') tt += x.v * x.w;
+          if (SLOW.includes(x.t)) continue; const prev = best.get(x.key); if (!prev || prev.v < x.v) best.set(x.key, x); } }
+      const ex = c.exacts.filter(e => e.ms >= b0 && e.ms < b1 && !state.muted.has(e.t)).map(e => ({ms: e.ms, html: `<span class="ch ex k-${e.kind}"><span class="tm">${hm(e.ms)}</span>${e.t} ${e.asp.g}${VS} ${e.tg.own === 'shared' ? 'shared ' : ''}${e.tg.b} exact</span>`}));
+      const ing = (c.dayInfo[d].ingress || []).filter(g => g.ms >= b0 && g.ms < b1).map(g => ({ms: g.ms, html: `<span class="mn"><span class="tm">${hm(g.ms)}</span>☽ enters ${SIGN_NAMES[g.sign]}</span>`}));
+      const ph = c.phases.filter(p => p.ms >= b0 && p.ms < b1).map(p => ({ms: p.ms, html: `<span class="ch ex k-fusion"><span class="tm">${hm(p.ms)}</span>${p.name}</span>`}));
+      const exKeys = new Set(c.exacts.filter(e => e.ms >= b0 && e.ms < b1).map(e => e.t + '|' + e.tg.own + e.tg.b + '|' + e.asp.k));
+      const act = [...best.values()].filter(x => !exKeys.has(x.key)).sort((p, q) => q.v * q.w - p.v * p.w).slice(0, 3)
+        .map(x => `<span class="ch k-${x.kind || x.asp.kind}">${x.t} ${x.asp.g}${VS} ${x.tg.own === 'shared' ? 'shared ' : ''}${x.tg.b}</span>`);
+      const timed = [...ex, ...ing, ...ph].sort((p, q) => p.ms - q.ms).map(o => o.html);
+      const dt = new Date(b0); const isToday = dt.toDateString() === today.toDateString();
+      const H = clamp(squash(hh / 6) * 1.6, 0, 1).toFixed(2), T = clamp(squash(tt / 6) * 1.6, 0, 1).toFixed(2);
+      html += `<div class="gc${isToday ? ' today' : ''}" data-d="${d}" data-h="${h0}" style="--h:${H};--t:${T}">${timed.join('')}${act.join('')}${!timed.length && !act.length ? '<span class="mn">open</span>' : ''}</div>`;
+    }
+  }
+  return html;
+}
 function renderWeek(){
-  const c = state.plan; $('#wBackdrop').innerHTML = backdropHTML(c, 'week');
+  const c = state.plan;
+  $('#wOver').innerHTML = `<div class="box"><h3>Moving through this week</h3>${movementHTML(c)}</div><div class="box"><h3>The arcs of the week</h3>${arcsHTML(c)}</div>`;
+  $('#wBackdrop').innerHTML = backdropHTML(c, 'week');
+  $('#wGrid').innerHTML = gridHTML(c);
   let html = ''; for (let d = 0; d < c.days; d++) html += dayCardHTML(c, d, true);
   $('#week').innerHTML = html;
 }
+$('#wGrid').addEventListener('click', e => { const g = e.target.closest('.gc[data-d]'); if (!g) return; const d = Number(g.dataset.d), h0 = Number(g.dataset.h);
+  state.selDay = d; state.ms = dayStart(state.plan, d) + (h0 + 3) * HOUR; lastFire = state.ms; markSel(); drawOver(); updateReadout(true); $('#scroll').scrollIntoView({behavior: 'smooth', block: 'center'}); });
 function markSel(){ for (const el of document.querySelectorAll('#cal [data-d], #week [data-d]')) el.classList.toggle('sel', Number(el.dataset.d) === state.selDay); }
 function syncDay(){
   const c = state.plan; let d = 0; while (d < c.days - 1 && dayStart(c, d + 1) <= state.ms) d++;
