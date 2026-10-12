@@ -1,0 +1,1246 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Sky Score: the planets as a musical score. See and hear your year, week and month, with plain-language daily readings for one person or a couple.">
+<title>Sky Score</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..700&family=Spectral:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a printed score. The wide staff sheet scrolls on the left; a conductor's readout sits on the right and drops below on phones. */
+:root{
+  --paper:#E9ECF3; --panel:#F8F9FC; --ink:#191E30; --muted:#586078; --rule:#C3C9D8; --accent:#2B45A3;
+  --warm:#C4442B; --cool:#1F8586; --gold:#A57B10; --retro:#3F3366; --band:#DADFEE;
+  --sun:#B48709; --moon:#646D86; --mercury:#B56C0A; --venus:#327C42; --mars:#BC3828; --jupiter:#6240A8; --saturn:#48566B; --uranus:#127CA0; --neptune:#3350B6; --pluto:#7B2047;
+  --display:"Bodoni Moda","Bodoni 72","Didot",Georgia,serif;
+  --body:"Spectral",Georgia,serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0C1020; --panel:#131828; --ink:#E2E5EF; --muted:#959CB3; --rule:#2A3150; --accent:#93A6FF;
+    --warm:#F27C60; --cool:#58CBC3; --gold:#E3BD50; --retro:#7A6AB5; --band:#1C2340;
+    --sun:#F0C94A; --moon:#C6CCDB; --mercury:#F1A946; --venus:#7ACD8B; --mars:#FF7B67; --jupiter:#B496F3; --saturn:#A9B6CA; --uranus:#61CEF2; --neptune:#8CA2FF; --pluto:#E2759D;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0C1020; --panel:#131828; --ink:#E2E5EF; --muted:#959CB3; --rule:#2A3150; --accent:#93A6FF;
+  --warm:#F27C60; --cool:#58CBC3; --gold:#E3BD50; --retro:#7A6AB5; --band:#1C2340;
+  --sun:#F0C94A; --moon:#C6CCDB; --mercury:#F1A946; --venus:#7ACD8B; --mars:#FF7B67; --jupiter:#B496F3; --saturn:#A9B6CA; --uranus:#61CEF2; --neptune:#8CA2FF; --pluto:#E2759D;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5}
+.page{max-width:1320px;margin:0 auto;padding-inline:20px;padding-block:28px 48px;display:flex;flex-direction:column;gap:18px}
+.mast{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 22px}
+.mast h1{font-family:var(--display);font-weight:500;font-style:italic;font-size:clamp(2.2rem,5vw,3.4rem);line-height:1;margin:0;letter-spacing:-.01em}
+.mast p{margin:0;max-width:62ch;color:var(--muted);font-size:1.02rem}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--rule)}
+.tabs button{font:inherit;font-size:1.05rem;background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);padding:8px 14px 9px;cursor:pointer;margin-bottom:-1px}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tabs button:focus-visible,.controls button:focus-visible,.controls select:focus-visible,.controls input:focus-visible,.day:focus-visible,summary:focus-visible,.births button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.controls{display:flex;flex-wrap:wrap;gap:10px 26px;align-items:center}
+.group{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
+.controls label{display:flex;gap:7px;align-items:center;color:var(--muted);font-size:.95rem}
+.controls select,.controls input[type=month]{font:inherit;font-size:.95rem;color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:4px;padding:4px 8px}
+.controls input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px}
+.play{font:inherit;font-weight:500;font-size:1rem;background:var(--accent);color:var(--panel);border:0;border-radius:999px;padding:8px 20px 8px 16px;cursor:pointer;display:inline-flex;gap:8px;align-items:center;min-width:112px;justify-content:center}
+.play .ico{font-family:var(--mono);font-size:.85em}
+.navbtn{font:inherit;font-size:1.2rem;line-height:1;background:var(--panel);color:var(--ink);border:1px solid var(--rule);border-radius:4px;width:34px;height:32px;cursor:pointer}
+#monthLabel{font-family:var(--display);font-style:italic;font-size:1.35rem;min-width:9ch;text-align:center}
+.mixer{display:flex;flex-direction:column;gap:6px}
+.mx-label{font-style:italic;color:var(--muted);font-size:.95rem}
+.mx-hint{font-style:normal;font-size:.85rem;margin-left:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:inherit;font-size:.92rem;display:inline-flex;align-items:baseline;gap:7px;background:var(--panel);color:var(--ink);border:1px solid var(--rule);border-radius:999px;padding:4px 12px 5px 10px;cursor:pointer}
+.chip .g{font-size:1.05rem}
+.chip .inst{font-style:italic;color:var(--muted);font-size:.85rem}
+.chip .note{font-family:var(--mono);font-size:.74rem;color:var(--muted);min-width:4.2ch}
+.chip[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink);background:color-mix(in srgb, var(--accent) 12%, var(--panel))}
+.chip.all{color:var(--muted)}
+.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:18px;align-items:start}
+.sheet{min-width:0;display:flex;flex-direction:column;gap:14px}
+.scroll{overflow-x:auto;background:var(--panel);border:1px solid var(--rule);border-radius:6px}
+.canvases{position:relative}
+.canvases canvas{display:block}
+#over{position:absolute;inset:0;cursor:ew-resize;touch-action:pan-y}
+.readout{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:16px 16px 18px;display:flex;flex-direction:column;gap:8px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px)}
+.r-date{font-family:var(--display);font-size:1.55rem;line-height:1.1;margin:0;font-variant-numeric:lining-nums}
+.r-sub{margin:0;color:var(--muted);font-size:.9rem}
+#dial{align-self:center;max-width:100%}
+.ticker{margin:0;min-height:1.5em;font-family:var(--mono);font-size:.8rem;color:var(--gold);transition:opacity .6s}
+.readout h3{margin:4px 0 0;font-size:.95rem;font-weight:500;font-style:italic;color:var(--muted)}
+#active{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;min-height:3em}
+#active li{cursor:pointer;border-radius:4px;display:grid;grid-template-columns:1fr auto;gap:2px 8px;font-size:.92rem;line-height:1.3}
+#active .meter{grid-column:1/-1;height:3px;border-radius:2px;background:var(--rule);overflow:hidden}
+#active .meter i{display:block;height:100%}
+#active li:hover{background:color-mix(in srgb, var(--accent) 7%, transparent)}
+#active .orb{font-family:var(--mono);font-size:.75rem;color:var(--muted);white-space:nowrap}
+#active .none{color:var(--muted);font-size:.9rem}
+.next{margin:4px 0 0;font-size:.88rem;color:var(--muted);border-top:1px solid var(--rule);padding-top:8px}
+.g{font-family:"Apple Symbols","Segoe UI Symbol","Noto Sans Symbols 2","DejaVu Sans",sans-serif;font-style:normal}
+.k-soft{color:var(--cool)} .k-hard{color:var(--warm)} .k-fusion{color:var(--gold)}
+/* calendar */
+.cal-head,.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.cal-head span{font-size:.8rem;color:var(--muted);padding:0 6px;font-style:italic}
+.day{font:inherit;text-align:left;cursor:pointer;color:var(--ink);border:1px solid var(--rule);border-radius:5px;min-height:96px;padding:6px 7px;display:flex;flex-direction:column;gap:2px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--cool) calc(var(--h,0) * 62%), transparent) 0%, transparent 62%),
+    linear-gradient(0deg, color-mix(in srgb, var(--warm) calc(var(--t,0) * 62%), transparent) 0%, transparent 62%),
+    var(--panel);}
+.day.blank{visibility:hidden}
+.day .dn{font-family:var(--display);font-size:1.15rem;line-height:1;font-variant-numeric:lining-nums}
+.day .tag{font-size:.75rem;font-family:var(--mono);color:var(--muted)}
+.day .line{font-size:.78rem;line-height:1.25;color:var(--ink);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.day.today{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.day.sel{outline:2px solid var(--ink);outline-offset:1px}
+.backdrop{margin:0 0 10px;font-size:.95rem;color:var(--muted);max-width:90ch}
+.backdrop b{font-weight:500;color:var(--ink)}
+.day-detail{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:14px 16px}
+.day-detail{display:grid;grid-template-columns:150px minmax(0,1fr);gap:4px 18px}
+@media (max-width:700px){.day-detail{grid-template-columns:minmax(0,1fr)}}
+.day-detail ul{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:3px}
+.day-detail .when{font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+.day-detail p{margin:0;color:var(--muted)}
+/* people */
+.people{display:flex;flex-direction:column;gap:10px}
+.people-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 16px}
+.people-head h2{margin:0;font-family:var(--display);font-weight:500;font-style:italic;font-size:1.5rem}
+.people-head p{margin:0;color:var(--muted);font-size:.95rem}
+.pcards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.pcard{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:12px 16px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.pc-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.pc-top h3{margin:0;font-family:var(--display);font-weight:500;font-size:1.3rem}
+.badge{font-family:var(--mono);font-size:.7rem;color:var(--muted);border:1px solid var(--rule);border-radius:999px;padding:1px 7px;vertical-align:middle;font-weight:400}
+.linkbtn{font:inherit;font-size:.92rem;background:none;border:0;color:var(--accent);cursor:pointer;padding:2px 0;text-decoration:underline;text-underline-offset:3px}
+.pc-birth{margin:0;color:var(--muted);font-size:.92rem}
+.pc-pl{margin:2px 0 0;display:flex;flex-wrap:wrap;gap:2px 12px;font-family:var(--mono);font-size:.8rem}
+.pl{white-space:nowrap;display:inline-flex;gap:3px;align-items:baseline}
+.pform{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 12px;align-items:center;padding-top:10px;margin-top:6px;border-top:1px solid var(--rule)}
+.pform label{font-size:.9rem;color:var(--muted)}
+.pform input,.pform select{font:inherit;font-size:.95rem;color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:4px;padding:5px 8px;min-width:0;max-width:100%}
+.pform .row{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.pform button.save{font:inherit;background:var(--ink);color:var(--panel);border:0;border-radius:4px;padding:6px 16px;cursor:pointer}
+.pform .note{grid-column:1/-1;margin:0;font-size:.83rem;color:var(--muted)}
+.pform input:focus-visible,.pform select:focus-visible,.pform button:focus-visible,.linkbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* week */
+.week{display:flex;flex-direction:column;gap:10px}
+.wday{display:grid;grid-template-columns:150px minmax(0,1fr);gap:4px 18px;border:1px solid var(--rule);border-radius:6px;padding:14px 16px;cursor:pointer;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--cool) calc(var(--h,0) * 40%), transparent) 0%, transparent 45%),
+    linear-gradient(90deg, color-mix(in srgb, var(--warm) calc(var(--t,0) * 40%), transparent) 0%, transparent 45%),
+    var(--panel);}
+.wday.today{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.wday.sel{outline:2px solid var(--ink);outline-offset:1px}
+.wd-head{display:flex;flex-direction:column;gap:2px}
+.wd{font-family:var(--display);font-size:1.35rem;line-height:1.1}
+.wdate{color:var(--muted);font-size:.92rem}
+.playday{font:inherit;font-size:.82rem;align-self:flex-start;margin-top:6px;background:none;border:1px solid var(--accent);color:var(--accent);border-radius:999px;padding:2px 11px;cursor:pointer}
+.playday:hover{background:color-mix(in srgb, var(--accent) 10%, transparent)}
+.playday:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.pill{align-self:flex-start;font-family:var(--mono);font-size:.72rem;border-radius:999px;padding:1px 9px;margin-top:4px;border:1px solid var(--rule)}
+.p-tense{color:var(--warm);border-color:var(--warm)} .p-easy{color:var(--cool);border-color:var(--cool)} .p-mixed{color:var(--gold);border-color:var(--gold)} .p-quiet{color:var(--muted)}
+.wd-body{display:flex;flex-direction:column;gap:8px;min-width:0}
+.sky{margin:0;color:var(--muted);font-size:.93rem;max-width:75ch}
+.sky .ph{color:var(--gold)}
+.reads{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px;max-width:75ch}
+.reads li{line-height:1.45}
+.reads b{font-weight:500}
+.reads .when,.day-detail .when{font-family:var(--mono);font-size:.76rem;color:var(--muted)}
+.reads .dot{font-size:.7rem;margin-right:4px}
+/* guide */
+.guide{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 36px;padding-top:6px}
+.guide h2{font-family:var(--display);font-weight:500;font-style:italic;font-size:1.45rem;margin:0 0 8px}
+.guide dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:8px 14px;align-items:baseline}
+.guide dt{font-family:var(--mono);font-size:.8rem;color:var(--muted);white-space:nowrap}
+.guide dd{margin:0;max-width:60ch}
+.sw{display:inline-block;width:26px;height:10px;border-radius:2px;vertical-align:middle}
+footer{color:var(--muted);font-size:.85rem;border-top:1px solid var(--rule);padding-top:12px;max-width:90ch}
+footer p{margin:0 0 6px}
+@media (max-width:900px){
+  .stage{grid-template-columns:minmax(0,1fr)}
+  .readout{position:static;display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:14px}
+  .readout > *{grid-column:1}
+  #dial{grid-column:2;grid-row:1 / span 4}
+  .guide{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:700px){
+  .pcards{grid-template-columns:minmax(0,1fr)}
+  .wday{grid-template-columns:minmax(0,1fr)}
+  .wd-head{flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+}
+@media (max-width:560px){
+  .page{padding-inline:16px}
+  .readout{display:flex}
+  .day{min-height:58px;padding:4px 5px}
+  .day .line{display:none}
+  .day .tag{font-size:.68rem}
+}
+@media (prefers-reduced-motion: reduce){ .ticker{transition:none} }
+body{margin:0}
+</style></head><body>
+
+<div class="page">
+  <header class="mast">
+    <h1>Sky Score</h1>
+    <p>The planets written out as a score. Thick lines move fast, thin lines slow down, the dark stretches run backward. Press play to hear it, then plan your week by it.</p>
+  </header>
+
+  <section class="people" aria-label="Whose stars">
+    <div class="people-head"><h2>Whose stars</h2><p id="peopleNote"></p></div>
+    <div class="pcards" id="pcards"></div>
+  </section>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tab-year" aria-selected="true">Year score</button>
+    <button role="tab" id="tab-week" aria-selected="false">Week</button>
+    <button role="tab" id="tab-month" aria-selected="false">Month</button>
+  </div>
+
+  <div class="controls">
+    <div class="group" id="yearCtl">
+      <label for="chartOf">Chart of <select id="chartOf"></select></label>
+      <label for="startMonth">Starting <input type="month" id="startMonth"></label>
+    </div>
+    <div class="group" id="planCtl" hidden>
+      <label for="subject">For <select id="subject"></select></label>
+      <button class="navbtn" id="prevP" aria-label="Previous">‹</button>
+      <span id="periodLabel"></span>
+      <button class="navbtn" id="nextP" aria-label="Next">›</button>
+    </div>
+    <div class="group">
+      <button class="play" id="play"><span class="ico" id="playIco">▶︎</span><span id="playTxt">Play</span></button>
+      <label for="speed">Tempo <select id="speed"><option value="slow">Slow</option><option value="normal" selected>Normal</option><option value="fast">Fast</option></select></label>
+    </div>
+    <div class="group">
+      <label for="L-voices"><input type="checkbox" id="L-voices" checked> Planet voices</label>
+      <label for="L-chords"><input type="checkbox" id="L-chords" checked> Aspect chords</label>
+      <label for="L-bells"><input type="checkbox" id="L-bells" checked> Bells</label>
+      <label for="L-mood"><input type="checkbox" id="L-mood" checked> Major/minor bed</label>
+    </div>
+  </div>
+
+  <div class="mixer" id="mixerWrap">
+    <span class="mx-label">Voices <span class="mx-hint">Tap one to hear it alone, then drag the score to bend its pitch.</span></span>
+    <div class="chips" id="mixer"></div>
+    <span class="mx-label">Aspects <span class="mx-hint">Tap one to hear it come to exact. Easy aspects settle into harmony. Hard ones tighten and never settle. Tap a line under Sounding now to hear that contact.</span></span>
+    <div class="chips" id="aspChips"></div>
+  </div>
+
+  <div class="stage">
+    <div class="sheet">
+      <div class="scroll" id="scroll">
+        <div class="canvases" id="canvases"><canvas id="base" aria-label="Score of planetary motion"></canvas><canvas id="over" aria-hidden="true"></canvas></div>
+      </div>
+      <div id="weekWrap" hidden>
+        <p class="backdrop" id="wBackdrop"></p>
+        <div class="week" id="week"></div>
+      </div>
+      <div id="calendarWrap" hidden>
+        <p class="backdrop" id="backdrop"></p>
+        <div class="cal-head" id="calHead"></div>
+        <div class="cal" id="cal"></div>
+      </div>
+      <div class="day-detail" id="dayDetail" hidden></div>
+    </div>
+    <aside class="readout" aria-label="Now playing">
+      <p class="r-date" id="rDate"></p>
+      <p class="r-sub" id="rSub"></p>
+      <canvas id="dial" width="230" height="230" aria-label="Zodiac wheel at the playhead"></canvas>
+      <p class="ticker" id="ticker" aria-live="polite"></p>
+      <h3>Sounding now</h3>
+      <ul id="active"></ul>
+      <p class="next" id="next"></p>
+    </aside>
+  </div>
+
+  <section class="guide">
+    <div>
+      <h2>Reading the score</h2>
+      <dl>
+        <dt>bar lines</dt><dd>Each vertical line starts a month in the year score and a day in the week and month views.</dd>
+        <dt>ribbon width</dt><dd>How fast the planet is moving across the sky. It thins as the planet slows, pinches to a thread at the station, then turns dark while it runs backward.</dd>
+        <dt><span class="sw" style="background:var(--band)"></span></dt><dd>The shadow: the stretch of sky the retrograde will cover, entered before it starts and left after it ends.</dd>
+        <dt>fermata</dt><dd>The hold sign marks a station, where the planet stands still before turning.</dd>
+        <dt><span class="sw" style="background:var(--cool)"></span> <span class="sw" style="background:var(--warm)"></span></dt><dd>Harmony rises above the line in teal (trines and sextiles). Tension hangs below in red (squares and oppositions). Gold is a conjunction, a meeting.</dd>
+        <dt>contact lanes</dt><dd>Each lane fades in as a transit approaches your planet and fades out as it leaves. A ring marks the exact moment. Three swells in one lane is a retrograde passing over the same point three times.</dd>
+      </dl>
+    </div>
+    <div>
+      <h2>Listening</h2>
+      <dl>
+        <dt>planet voices</dt><dd>Tap a planet in the Voices row, or its name on the score, to hear it alone. Each planet is its own instrument in its own place left to right: the Sun a horn, the Moon a flute, Mercury quick ticks, Venus glass bells, Mars a growl, Jupiter an organ, Saturn a low cello, Uranus an electric trill, Neptune a haze, Pluto a heartbeat. Its pitch follows its speed, the way Kepler wrote each planet a melody in <i>Harmonices Mundi</i> (1619). Fast is high. Mercury's ticks, Mars's growl and Pluto's heartbeat also speed up and slow down with the planet. A station slides down an octave. Retrograde sounds muffled.</dd>
+        <dt>aspect chords</dt><dd>Each contact plays two tones set to its interval. Trines and sextiles are pure, sweet intervals (a fifth, a sixth). Squares and oppositions are buzzy and rub (a tritone, a minor ninth). Conjunctions are two voices on one note. Easy aspects start with a slow wobble that calms as they close and locks into harmony at exact. Hard aspects go the other way: the closer they get, the faster and harsher the rub, with a clashing half step added, and nothing resolves.</dd>
+        <dt>major/minor bed</dt><dd>A soft chord sits under everything. It is major while harmony leads, turns minor as tension grows, and goes diminished with a clashing half step when tension takes over. You can hear a hard week coming before you read about it.</dd>
+        <dt>bells</dt><dd>Bells ring when a contact is exact. An easy aspect rings a rising major chord that sounds finished. A hard aspect strikes three clashing bells at once that hang in the air unresolved. Deep gongs mark stations, and bright gold bells ring when two planets meet in the sky or the Moon turns new or full.</dd>
+      </dl>
+    </div>
+  </section>
+
+  <footer>
+    <p>Prototype. Positions come from Astronomy Engine (MIT license, accurate to about one arcminute) computed live in your browser. Tropical zodiac, geocentric.</p>
+    <p>Charts marked sample are invented. Tap Edit under Whose stars to put in real people. Birth data you enter stays in your browser.</p>
+  </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js"></script>
+<script>
+(function(){
+const A = window.Astronomy;
+const $ = s => document.querySelector(s);
+const DAY = 864e5, HOUR = 36e5, VS = '︎';
+const GLYPHF = '"Apple Symbols","Segoe UI Symbol","Noto Sans Symbols 2","Noto Sans Symbols","DejaVu Sans",sans-serif';
+const BODYF = '"Spectral",Georgia,serif';
+const MONOF = '"IBM Plex Mono",ui-monospace,Menlo,monospace';
+const DISPF = '"Bodoni Moda","Bodoni 72",Didot,Georgia,serif';
+const norm360 = x => ((x % 360) + 360) % 360;
+const norm180 = x => { x = norm360(x); return x > 180 ? x - 360 : x; };
+const clamp = (x,a,b) => Math.max(a, Math.min(b, x));
+const bump = (o,m) => o >= m ? 0 : 0.5 * (1 + Math.cos(Math.PI * o / m));
+const squash = v => 1 - Math.exp(-v * 1.5);
+
+const PLANETS = {
+  Sun:{g:'☉',base:261.63,max:1.02}, Moon:{g:'☽',base:440,max:15.4},
+  Mercury:{g:'☿',base:783.99,max:2.2}, Venus:{g:'♀',base:523.25,max:1.26}, Mars:{g:'♂',base:220,max:0.79},
+  Jupiter:{g:'♃',base:164.81,max:0.24}, Saturn:{g:'♄',base:146.83,max:0.13}, Uranus:{g:'♅',base:659.26,max:0.065},
+  Neptune:{g:'♆',base:196,max:0.038}, Pluto:{g:'♇',base:82.41,max:0.04}
+};
+const ALL = Object.keys(PLANETS);
+const ROWS = ['Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto'];
+const SIGNS = ['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'];
+const SIGN_NAMES = ['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
+const ASPECTS = [
+  {k:'conj', a:0,   g:'☌', kind:'fusion', ratio:1,     verb:'meets',    name:'conjunct'},
+  {k:'sext', a:60,  g:'⚹', kind:'soft',   ratio:5/3,   verb:'opens to', name:'sextile'},
+  {k:'sq',   a:90,  g:'□', kind:'hard',   ratio:45/32, verb:'squares',  name:'square'},
+  {k:'tri',  a:120, g:'△', kind:'soft',   ratio:3/2,   verb:'flows to', name:'trine'},
+  {k:'opp',  a:180, g:'☍', kind:'hard',   ratio:32/15, verb:'opposes',  name:'opposite'}
+];
+const glyph = b => PLANETS[b].g + VS;
+
+/* ---------- ephemeris ---------- */
+function lonAt(body, ms){ return A.Ecliptic(A.GeoVector(body, new Date(ms), true)).elon; }
+function buildSeries(bodies, t0, step, n){
+  const s = {t0, step, n, lon:{}, spd:{}}; const sd = step / DAY;
+  for (const b of bodies){
+    const L = new Float64Array(n); let off = 0;
+    for (let i = 0; i < n; i++){
+      const l = lonAt(b, t0 + i * step);
+      if (i){ const d = l + off - L[i-1]; if (d > 180) off -= 360; else if (d < -180) off += 360; }
+      L[i] = l + off;
+    }
+    const S = new Float64Array(n);
+    for (let i = 0; i < n; i++){ const a = Math.max(0, i-1), c = Math.min(n-1, i+1); S[i] = (L[c] - L[a]) / ((c - a) * sd); }
+    s.lon[b] = L; s.spd[b] = S;
+  }
+  return s;
+}
+function sample(s, b, ms){
+  const f = (ms - s.t0) / s.step; const i = clamp(Math.floor(f), 0, s.n - 2); const u = clamp(f - i, 0, 1);
+  const L = s.lon[b], S = s.spd[b]; const raw = L[i] + (L[i+1] - L[i]) * u;
+  return {lon: norm360(raw), raw, spd: S[i] + (S[i+1] - S[i]) * u};
+}
+function lerpArr(arr, f){ const i = clamp(Math.floor(f), 0, arr.length - 1), j = Math.min(arr.length - 1, i + 1); const u = clamp(f - i, 0, 1); return arr[i] + (arr[j] - arr[i]) * u; }
+function birthMs(p){
+  const [y,m,d] = p.date.split('-').map(Number); const [hh,mm] = (p.time || '12:00').split(':').map(Number);
+  return Date.UTC(y, m-1, d, hh, mm) - Number(p.tz) * HOUR;
+}
+function natalOf(p){ const ms = birthMs(p); const o = {}; for (const b of ALL) o[b] = norm360(lonAt(b, ms)); return o; }
+function midpoint(a, b){ return norm360(a + norm180(b - a) / 2); }
+function bestAspect(tl, nl, maxOrb){
+  let best = null;
+  for (const a of ASPECTS){
+    for (const sgn of (a.a === 0 || a.a === 180) ? [1] : [1, -1]){
+      const d = norm180(tl - nl - sgn * a.a); const o = Math.abs(d);
+      if (o <= maxOrb && (!best || o < best.orb)) best = {asp:a, orb:o, d, sgn};
+    }
+  }
+  return best;
+}
+function crossings(La, getTarget, i0, i1, cb){
+  for (const a of ASPECTS){
+    for (const sgn of (a.a === 0 || a.a === 180) ? [1] : [1, -1]){
+      for (let i = i0; i < i1; i++){
+        const d0 = norm180(La[i] - getTarget(i) - sgn * a.a), d1 = norm180(La[i+1] - getTarget(i+1) - sgn * a.a);
+        if (Math.abs(d0) < 10 && Math.abs(d1) < 10 && (d0 === 0 || Math.sign(d0) !== Math.sign(d1))){
+          cb(i + d0 / (d0 - d1), a);
+        }
+      }
+    }
+  }
+}
+
+/* ---------- people ---------- */
+const SAMPLE = {
+  A:{name:'Ana', date:'1988-03-14', time:'07:30', tz:-3, sample:true},
+  B:{name:'Leo', date:'1985-11-02', time:'22:10', tz:-3, sample:true}
+};
+function loadPeople(){
+  try { const s = JSON.parse(localStorage.getItem('skyscore.people.v2') || 'null'); if (s && s.A && s.B && s.A.date && s.B.date) return s; } catch(e){}
+  return JSON.parse(JSON.stringify(SAMPLE));
+}
+function savePeople(p){ try { localStorage.setItem('skyscore.people.v2', JSON.stringify(p)); } catch(e){} }
+const firstName = p => (p.name || 'Someone').trim().split(/\s+/)[0];
+const label = p => firstName(p) + (p.sample ? ' (sample)' : '');
+
+/* ---------- year model ---------- */
+const YT = {Mars:{w:.55,orb:2.5}, Jupiter:{w:.7,orb:3}, Saturn:{w:1,orb:3}, Uranus:{w:.9,orb:3}, Neptune:{w:.8,orb:3}, Pluto:{w:.9,orb:3}};
+const YN = {Sun:1, Moon:1, Mercury:.7, Venus:.9, Mars:.9, Jupiter:.6, Saturn:.7};
+const MEETERS = ['Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto'];
+function buildYear(person, startMs){
+  const MARGIN = 200, N = 365;
+  const t0 = startMs - MARGIN * DAY, n = N + 2 * MARGIN + 2, off = MARGIN;
+  const S = buildSeries(ALL, t0, DAY, n);
+  const natal = natalOf(person);
+  const H = new Float32Array(N+1), T = new Float32Array(N+1), F = new Float32Array(N+1);
+  const lanes = new Map(), exacts = [];
+  for (const t in YT){ for (const nb in YN){
+    const w = YT[t].w * YN[nb], m = YT[t].orb, L = S.lon[t];
+    for (let i = 0; i <= N; i++){
+      const b = bestAspect(norm360(L[off+i]), natal[nb], m); if (!b) continue;
+      const v = bump(b.orb, m); const key = t + '|' + nb + '|' + b.asp.k;
+      let ln = lanes.get(key); if (!ln){ ln = {key, t, n:nb, asp:b.asp, arr:new Float32Array(N+1), peak:0, first:i, w}; lanes.set(key, ln); }
+      ln.arr[i] = Math.max(ln.arr[i], v); ln.peak = Math.max(ln.peak, v);
+      const k = b.asp.kind; if (k === 'soft') H[i] += w*v; else if (k === 'hard') T[i] += w*v; else F[i] += w*v;
+    }
+    crossings(L, () => natal[nb], off, off + N, (fi, a) => exacts.push({type:'exact', ms: t0 + fi * DAY, t, n:nb, asp:a}));
+  }}
+  const stations = [], shadows = [], ingresses = [], meets = [];
+  for (const b of ROWS){
+    const Sp = S.spd[b], L = S.lon[b]; const list = [];
+    for (let i = 1; i < n; i++){
+      if (Sp[i-1] !== 0 && Math.sign(Sp[i-1]) !== Math.sign(Sp[i])){
+        const u = Sp[i-1] / (Sp[i-1] - Sp[i]); const fi = i - 1 + u;
+        list.push({type:'station', b, dir: Sp[i] < 0 ? 'R' : 'D', ms: t0 + fi * DAY, raw: L[i-1] + (L[i] - L[i-1]) * u, fi});
+      }
+    }
+    for (let j = 0; j < list.length - 1; j++){
+      const r = list[j], d = list[j+1]; if (r.dir !== 'R' || d.dir !== 'D') continue;
+      let start = null, end = null;
+      for (let i = Math.floor(r.fi); i > 0; i--){ if (L[i-1] <= d.raw && L[i] > d.raw){ start = t0 + (i - 1 + (d.raw - L[i-1]) / (L[i] - L[i-1])) * DAY; break; } }
+      for (let i = Math.ceil(d.fi); i < n - 1; i++){ if (L[i] < r.raw && L[i+1] >= r.raw){ end = t0 + (i + (r.raw - L[i]) / (L[i+1] - L[i])) * DAY; break; } }
+      shadows.push({b, start: start ?? t0, end: end ?? (t0 + n * DAY)});
+    }
+    for (const st of list) stations.push(st);
+    for (let i = off; i < off + N; i++){
+      const s0 = Math.floor(norm360(L[i]) / 30), s1 = Math.floor(norm360(L[i+1]) / 30);
+      if (s0 !== s1){
+        const B = L[i+1] > L[i] ? Math.floor(L[i+1] / 30) * 30 : Math.floor(L[i] / 30) * 30;
+        const u = clamp((B - L[i]) / (L[i+1] - L[i]), 0, 1);
+        ingresses.push({b, ms: t0 + (i + u) * DAY, sign: s1});
+      }
+    }
+  }
+  for (let x = 0; x < MEETERS.length; x++) for (let y = x + 1; y < MEETERS.length; y++){
+    const a = MEETERS[x], b = MEETERS[y], La = S.lon[a], Lb = S.lon[b];
+    for (let i = off; i < off + N; i++){
+      const d0 = norm180(La[i] - Lb[i]), d1 = norm180(La[i+1] - Lb[i+1]);
+      if (Math.abs(d0) < 10 && Math.abs(d1) < 10 && (d0 === 0 || Math.sign(d0) !== Math.sign(d1))){
+        meets.push({type:'meet', a, b, ms: t0 + (i + d0 / (d0 - d1)) * DAY, lon: norm360(La[i])});
+      }
+    }
+  }
+  let laneList = [...lanes.values()].filter(l => l.peak > 0.12);
+  laneList.sort((p, q) => q.peak * q.w - p.peak * p.w); laneList = laneList.slice(0, 16);
+  laneList.sort((p, q) => p.first - q.first);
+  const endMs = startMs + N * DAY;
+  const inWin = e => e.ms >= startMs && e.ms <= endMs;
+  const events = [...exacts.filter(e => laneList.some(l => l.t === e.t && l.n === e.n && l.asp.k === e.asp.k)), ...stations.filter(inWin), ...meets].filter(inWin).sort((p, q) => p.ms - q.ms);
+  return {kind:'year', person, startMs, endMs, N, S, natal, H, T, F, lanes: laneList, exacts, stations, shadows, ingresses, meets, events};
+}
+
+/* ---------- planner model (week and month) ---------- */
+const CT = {Moon:{w:.35,orb:4}, Sun:{w:.45,orb:2}, Mercury:{w:.35,orb:1.5}, Venus:{w:.5,orb:2}, Mars:{w:.8,orb:2.5},
+            Jupiter:{w:.6,orb:3}, Saturn:{w:1,orb:3}, Uranus:{w:.8,orb:3}, Neptune:{w:.6,orb:3}, Pluto:{w:.8,orb:3}};
+const HARSH = new Set(['Mars','Saturn','Uranus','Pluto']);
+/* slow planets set the backdrop; the day-to-day music comes from the fast ones */
+const DW = {Moon:1, Sun:1, Mercury:1, Venus:1, Mars:1, Jupiter:.3, Saturn:.35, Uranus:.3, Neptune:.25, Pluto:.3};
+const SLOW = ['Jupiter','Saturn','Uranus','Neptune','Pluto'];
+const NAT_W = {Sun:1, Moon:1, Mercury:.7, Venus:.9, Mars:.9, Jupiter:.5, Saturn:.6};
+const PHASES = [['New Moon','plant something quietly and start fresh'], ['Waxing crescent','small beginnings gather strength'],
+  ['First quarter','a push to decide and act'], ['Waxing gibbous','refine, adjust, keep going'], ['Full Moon','things come to light and feelings peak'],
+  ['Waning gibbous','share what you have learned'], ['Last quarter','let go of what is not working'], ['Waning crescent','rest, finish, clear the decks']];
+const MOON_SIGN = ['quick, impatient, ready to start', 'steady, wants comfort and good food', 'chatty, curious, a little scattered', 'tender, home-minded, protective',
+  'warm, playful, wants to be seen', 'practical, tidy, a little critical', 'social, wants company and fairness', 'intense, private, all or nothing',
+  'restless, wants room and a big view', 'serious, gets things done', 'cool, independent, full of ideas', 'soft, dreamy, easily touched'];
+const THEME = {Moon:'the mood of the hour', Sun:'attention and energy', Mercury:'talk, plans and messages', Venus:'affection and pleasure', Mars:'drive and heat',
+  Jupiter:'growth and generosity', Saturn:'pressure and responsibility', Uranus:'surprise and the urge for freedom', Neptune:'dreams and fog', Pluto:'deep change and questions of power'};
+const TARGET_MEAN = {Sun:'sense of purpose', Moon:'feelings and need for comfort', Mercury:'way of thinking and speaking', Venus:'loves and values',
+  Mars:'way of going after things', Jupiter:'faith and appetite for more', Saturn:'duties and fears'};
+const SHARED_MEAN = {Sun:'what the two of you are building', Moon:'the feeling at home between you', Mars:'how you two act and argue', Venus:'the affection between you', Mercury:'how you two talk'};
+const cap = x => x.charAt(0).toUpperCase() + x.slice(1);
+const ASP_LINE = {
+  conj:(a,b) => `${cap(a)} and ${b} merge for a while.`,
+  sext:(a,b) => `A small door opens between ${a} and ${b}, if you take the first step.`,
+  tri: (a,b) => `${cap(a)} and ${b} work together easily.`,
+  sq:  (a,b) => `${cap(a)} and ${b} rub against each other. Friction that asks for action.`,
+  opp: (a,b) => `${cap(a)} and ${b} pull in opposite directions, often through someone else.`
+};
+const ADVICE = {
+  Moon:['Feelings run high for a few hours. Wait before you answer.', 'A good few hours to talk about feelings.'],
+  Sun:['Pride is touchy. Lead with a question.', 'A good day to be seen and to ask for what you want.'],
+  Mercury:['Read it twice before you send it.', 'Good for plans, calls and the conversation you have been putting off.'],
+  Venus:['Wants and budgets clash. A small kindness goes far.', 'Make a date. Say the warm thing out loud.'],
+  Mars:['Short fuse. Move your body before you argue.', 'Energy to get real things done.'],
+  Jupiter:['Easy to overdo it or promise too much.', 'Say yes to the bigger version.'],
+  Saturn:['Heavy and slow. Keep promises small and real.', 'Good for commitments meant to last.'],
+  Uranus:['Expect a surprise. Leave room in the plan.', 'Try something you have never done.'],
+  Neptune:['Things are blurry. Check the facts before you assume.', 'Good for music, art, prayer and tenderness.'],
+  Pluto:['Old power struggles surface. Name what you are afraid of.', 'Depth is available. Go one layer further down.']
+};
+const esc = x => String(x).replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+const dayStart = (c, d) => { const s = new Date(c.startMs); return new Date(s.getFullYear(), s.getMonth(), s.getDate() + d).getTime(); };
+const hm = ms => new Date(ms).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+function buildPlanner(subj, startMs, endMs, PER, moonBells){
+  const P = state.people; const pair = subj === 'AB';
+  const days = Math.round((endMs - startMs) / DAY), STEP = DAY / PER, n = days * PER + 1;
+  const S = buildSeries(ALL, startMs, STEP, n);
+  let targets, staves, inner;
+  if (pair){
+    const na = natalOf(P.A), nb = natalOf(P.B); const comp = {};
+    for (const k of ['Sun','Moon','Mercury','Venus','Mars']) comp[k] = midpoint(na[k], nb[k]);
+    targets = [
+      {own:'shared', b:'Venus', lon:comp.Venus, w:1}, {own:'shared', b:'Moon', lon:comp.Moon, w:1},
+      {own:'shared', b:'Mars', lon:comp.Mars, w:.9}, {own:'shared', b:'Sun', lon:comp.Sun, w:.8},
+      {own:'A', b:'Venus', lon:na.Venus, w:.6}, {own:'A', b:'Moon', lon:na.Moon, w:.6}, {own:'A', b:'Mars', lon:na.Mars, w:.45},
+      {own:'B', b:'Venus', lon:nb.Venus, w:.6}, {own:'B', b:'Moon', lon:nb.Moon, w:.6}, {own:'B', b:'Mars', lon:nb.Mars, w:.45}];
+    staves = [['A', firstName(P.A)], ['B', firstName(P.B)], ['shared', 'Together']];
+    inner = Object.keys(comp).map(b => ({b, lon: comp[b]}));
+  } else {
+    const nat = natalOf(P[subj]);
+    targets = Object.keys(NAT_W).map(b => ({own: subj, b, lon: nat[b], w: NAT_W[b]}));
+    staves = [[subj, firstName(P[subj])]];
+    inner = targets.map(t => ({b: t.b, lon: t.lon}));
+  }
+  const H = {}, T = {}; for (const [k] of staves){ H[k] = new Float32Array(n); T[k] = new Float32Array(n); }
+  const dayC = Array.from({length: days}, () => new Map()); const exacts = []; const slowPeak = new Map();
+  for (const t in CT){ const L = S.lon[t];
+    for (const tg of targets){
+      for (let i = 0; i < n; i++){
+        const b = bestAspect(norm360(L[i]), tg.lon, CT[t].orb); if (!b) continue;
+        const raw = CT[t].w * tg.w * bump(b.orb, CT[t].orb); const v = raw * DW[t];
+        if (SLOW.includes(t)){ const sk = t + '|' + tg.own + '|' + tg.b + '|' + b.asp.k; const sp = slowPeak.get(sk); if (!sp || sp.raw < raw) slowPeak.set(sk, {t, tg, asp:b.asp, raw}); }
+        const kind = b.asp.kind === 'fusion' ? (HARSH.has(t) ? 'hard' : (t === 'Neptune' ? 'mixed' : 'soft')) : b.asp.kind;
+        if (kind === 'soft') H[tg.own][i] += v; else if (kind === 'hard') T[tg.own][i] += v; else { H[tg.own][i] += v/2; T[tg.own][i] += v/2; }
+        const day = Math.min(days - 1, Math.floor(i / PER)); const key = t + '|' + tg.own + '|' + tg.b + '|' + b.asp.k;
+        const prev = dayC[day].get(key); if (!prev || prev.v < v) dayC[day].set(key, {t, tg, asp:b.asp, kind, v, orb:b.orb});
+      }
+      if (t !== 'Moon' || moonBells) crossings(L, () => tg.lon, 0, n - 1, (fi, a) => exacts.push({type:'exact', ms: startMs + fi * STEP, t, tg, asp:a,
+        kind: a.kind === 'fusion' ? (HARSH.has(t) ? 'hard' : 'soft') : a.kind}));
+    }
+  }
+  const Lm = S.lon.Moon, Ls = S.lon.Sun; const phases = [];
+  for (let i = 0; i < n - 1; i++){
+    const e0 = norm360(Lm[i] - Ls[i]), e1 = norm360(Lm[i+1] - Ls[i+1]);
+    for (let k = 0; k < 4; k++){ const d0 = norm180(e0 - k * 90), d1 = norm180(e1 - k * 90);
+      if (Math.abs(d0) < 30 && Math.abs(d1) < 30 && d0 < 0 && d1 >= 0){ const u = -d0 / (d1 - d0); phases.push({type:'phase', ms: startMs + (i + u) * STEP, name: ['New Moon','First quarter','Full Moon','Last quarter'][k], sign: Math.floor(norm360(Lm[i] + (Lm[i+1] - Lm[i]) * u) / 30)}); } }
+  }
+  const dayInfo = [];
+  for (let d = 0; d < days; d++){
+    let th = 0, hh = 0;
+    for (let i = d * PER; i < (d + 1) * PER; i++){
+      if (pair){ th += T.shared[i] + .5 * (T.A[i] + T.B[i]); hh += H.shared[i] + .5 * (H.A[i] + H.B[i]); }
+      else { th += T[subj][i]; hh += H[subj][i]; }
+    }
+    const t = squash(th / PER * (pair ? 1 : 1.3)), h = squash(hh / PER * (pair ? 1 : 1.3));
+    const tag = (t < .16 && h < .16) ? 'quiet' : (t > h + .1 ? 'tense' : (h > t + .1 ? 'easy' : 'mixed'));
+    const cs = [...dayC[d].values()].sort((p, q) => q.v * (q.t === 'Moon' ? .6 : 1) - p.v * (p.t === 'Moon' ? .6 : 1));
+    const noon = Math.min(n - 1, d * PER + Math.floor(PER / 2)); const ml = norm360(Lm[noon]);
+    const ingress = [];
+    for (let i = d * PER; i < (d + 1) * PER && i < n - 1; i++){ const a = Math.floor(norm360(Lm[i]) / 30), b = Math.floor(norm360(Lm[i+1]) / 30);
+      if (a !== b){ const B = Math.floor(Lm[i+1] / 30) * 30; ingress.push({ms: startMs + (i + clamp((B - Lm[i]) / (Lm[i+1] - Lm[i]), 0, 1)) * STEP, sign: b}); } }
+    dayInfo.push({t, h, tag, contacts: cs, moonSign: Math.floor(ml / 30), phase: Math.floor(((norm360(ml - norm360(Ls[noon])) + 22.5) % 360) / 45), ingress});
+  }
+  exacts.sort((p, q) => p.ms - q.ms);
+  const backdrop = [...slowPeak.values()].filter(x => x.raw > .3).sort((p, q) => q.raw - p.raw).slice(0, 4);
+  const events = [...exacts, ...phases].sort((p, q) => p.ms - q.ms);
+  return {kind:'plan', subj, pair, pA:P.A, pB:P.B, startMs, endMs, days, PER, n, S, H, T, targets, staves, inner, dayInfo, exacts, phases, backdrop, events};
+}
+function ownerWord(tg, c){ if (tg.own === 'shared') return 'your shared'; if (!c.pair) return 'your'; return firstName(tg.own === 'A' ? c.pA : c.pB) + '’s'; }
+function planSentence(t, asp, tg, c){ return `${t} ${asp.verb} ${ownerWord(tg, c)} ${tg.b}`; }
+function targetPhrase(tg, c){ if (tg.own === 'shared') return SHARED_MEAN[tg.b]; return `${c.pair ? firstName(tg.own === 'A' ? c.pA : c.pB) + '’s' : 'your'} ${TARGET_MEAN[tg.b]}`; }
+function reading(x, c){ const hard = x.kind === 'hard' || x.kind === 'mixed'; return ASP_LINE[x.asp.k](THEME[x.t], targetPhrase(x.tg, c)) + ' ' + ADVICE[x.t][hard ? 0 : 1]; }
+function dayReads(c, d){
+  const di = c.dayInfo[d], ds = dayStart(c, d), de = dayStart(c, d + 1); const out = [], seen = new Set();
+  const ex = c.exacts.filter(e => e.ms >= ds && e.ms < de);
+  for (const x of di.contacts){
+    const hit = ex.find(e => e.t === x.t && e.tg === x.tg && e.asp.k === x.asp.k);
+    if (SLOW.includes(x.t) && !hit) continue;
+    const k = x.t + x.tg.own + x.tg.b; if (seen.has(k)) continue; seen.add(k);
+    out.push({x, hit}); if (out.length >= 3) break;
+  }
+  return out;
+}
+function backdropHTML(c, span){
+  const head = `<b>Underneath the whole ${span}:</b> `;
+  if (!c.backdrop.length) return head + `the slow planets leave ${c.pair ? 'your charts' : 'this chart'} alone. The days below show the faster weather.`;
+  return head + c.backdrop.map(x => `${planSentence(x.t, x.asp, x.tg, c)} <span class="g k-${x.asp.kind === 'fusion' ? (HARSH.has(x.t) ? 'hard' : 'soft') : x.asp.kind}">${x.asp.g}${VS}</span>`).join('; ') + `. These are the long notes. The days below show what moves on top of them.`;
+}
+function dayCardHTML(c, d, asArticle){
+  const di = c.dayInfo[d], ds = dayStart(c, d), de = dayStart(c, d + 1); const date = new Date(ds);
+  const reads = dayReads(c, d); const today = new Date();
+  const isToday = date.getFullYear() === today.getFullYear() && date.getMonth() === today.getMonth() && date.getDate() === today.getDate();
+  const ing = di.ingress.map(g => ` The Moon moves into ${SIGN_NAMES[g.sign]} at ${hm(g.ms)}.`).join('');
+  const ph = c.phases.filter(p => p.ms >= ds && p.ms < de).map(p => ` <span class="ph">${p.name} in ${SIGN_NAMES[p.sign]} at ${hm(p.ms)}.</span>`).join('');
+  const sky = `<p class="sky"><span class="g">☽${VS}</span> Moon in ${SIGN_NAMES[di.moonSign]}: ${MOON_SIGN[di.moonSign]}. ${PHASES[di.phase][0]}: ${PHASES[di.phase][1]}.${ing}${ph}</p>`;
+  const list = reads.length ? `<ul class="reads">${reads.map(r => `<li><span class="dot k-${r.x.kind === 'mixed' ? 'fusion' : r.x.kind}">●</span><b>${planSentence(r.x.t, r.x.asp, r.x.tg, c)}</b> <span class="when">${r.hit ? 'exact ' + hm(r.hit.ms) : 'closest ' + fmtOrb(r.x.orb)}</span><br>${reading(r.x, c)}</li>`).join('')}</ul>`
+    : `<p class="sky">Nothing fast touches ${c.pair ? 'your charts' : 'this chart'} today. A free day to use as you like.</p>`;
+  const head = `<header class="wd-head"><span class="wd">${date.toLocaleDateString('en-GB', {weekday:'long'})}</span><span class="wdate">${date.toLocaleDateString('en-GB', {day:'numeric', month:'long'})}</span><span class="pill p-${di.tag}">${di.tag}</span><button class="playday" data-playday="${d}" aria-label="Play ${date.toLocaleDateString('en-GB', {weekday:'long'})} slowly">▶︎ Play this day</button></header>`;
+  if (!asArticle) return `${head}<div class="wd-body">${sky}${list}</div>`;
+  const hs = clamp((di.h - di.t * .55) * 1.8, 0, 1).toFixed(3), ts = clamp((di.t - di.h * .55) * 1.8, 0, 1).toFixed(3);
+  return `<article class="wday${isToday ? ' today' : ''}${state.selDay === d ? ' sel' : ''}" data-d="${d}" tabindex="0" style="--h:${hs};--t:${ts}">${head}<div class="wd-body">${sky}${list}</div></article>`;
+}
+
+/* ---------- state ---------- */
+const now = Date.now();
+const mondayOf = ms => { const d = new Date(ms); return new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7)).getTime(); };
+const monthOf = ms => { const d = new Date(ms); return new Date(d.getFullYear(), d.getMonth(), 1).getTime(); };
+const state = {
+  view:'year', people: loadPeople(), chartOf:'A', yearStart: monthOf(now), monthStart: monthOf(now),
+  ms: now, playing:false, speed:'normal', layers:{voices:true, chords:true, bells:true, mood:true}, year:null, plan:null, selDay:null, solo:null, holding:false, stopAt:null, subject:'A', weekStart: mondayOf(now)
+};
+const RATES = {year:{slow:3, normal:9, fast:24}, week:{slow:.06, normal:.12, fast:.3}, month:{slow:.1, normal:.2, fast:.6}};
+const DAYRATE = {slow:1/40, normal:1/20, fast:1/8};
+const model = () => state.view === 'year' ? state.year : state.plan;
+
+/* ---------- theme ---------- */
+let TK = {};
+function readTokens(){
+  const cs = getComputedStyle(document.documentElement); const g = n => cs.getPropertyValue(n).trim();
+  TK = {panel:g('--panel'), paper:g('--paper'), ink:g('--ink'), muted:g('--muted'), rule:g('--rule'), accent:g('--accent'),
+        warm:g('--warm'), cool:g('--cool'), gold:g('--gold'), retro:g('--retro'), band:g('--band')};
+  for (const b of ALL) TK[b] = g('--' + b.toLowerCase());
+}
+const kindColor = k => k === 'soft' ? TK.cool : (k === 'hard' ? TK.warm : TK.gold);
+
+/* ---------- canvas helpers ---------- */
+const base = $('#base'), over = $('#over'), dial = $('#dial');
+over.addEventListener('pointermove', e => { if (dragging || state.view !== 'year' || !LAY) return; const r = over.getBoundingClientRect(); const px = e.clientX - r.left, py = e.clientY - r.top;
+  over.style.cursor = (px < LAY.L - 6 && py >= LAY.rTop && py < LAY.rTop + ROWS.length * LAY.rowH) ? 'pointer' : 'ew-resize'; });
+function sizeCanvas(cv, w, h){
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.width = w + 'px'; cv.style.height = h + 'px';
+  const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); return ctx;
+}
+function line(ctx, x0, y0, x1, y1){ ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke(); }
+function fermata(ctx, x, y, color){
+  ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 1.6;
+  ctx.beginPath(); ctx.arc(x, y + 4, 6, Math.PI, 0); ctx.stroke();
+  ctx.beginPath(); ctx.arc(x, y + 2.5, 1.7, 0, Math.PI * 2); ctx.fill(); ctx.lineWidth = 1;
+}
+const shortDate = ms => new Date(ms).toLocaleDateString('en-GB', {day:'numeric', month:'short'});
+const longDate = ms => new Date(ms).toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'});
+const fmtOrb = o => { let d = Math.floor(o), m = Math.round((o - d) * 60); if (m === 60){ d++; m = 0; } return `${d}°${String(m).padStart(2,'0')}′`; };
+let LAY = null;
+function canvasWidth(min){ return Math.max(min, Math.floor($('#scroll').clientWidth - 2)); }
+
+/* ---------- draw: year ---------- */
+function drawYear(){
+  const m = state.year; const W = canvasWidth(760);
+  const lay = {L:136, R:18, axisH:30, wTop:30, wH:92, rowH:46, laneH:20, lHead:30};
+  lay.rTop = lay.wTop + lay.wH + 10; lay.lTop = lay.rTop + ROWS.length * lay.rowH + 8;
+  lay.H = lay.lTop + lay.lHead + Math.max(1, m.lanes.length) * lay.laneH + 14; lay.W = W; lay.plotW = W - lay.L - lay.R;
+  lay.X = ms => lay.L + (ms - m.startMs) / (m.endMs - m.startMs) * lay.plotW;
+  LAY = lay;
+  const ctx = sizeCanvas(base, W, lay.H); sizeCanvas(over, W, lay.H);
+  ctx.fillStyle = TK.panel; ctx.fillRect(0, 0, W, lay.H);
+  const X = lay.X, plotW = lay.plotW;
+  // bar lines = months
+  ctx.textBaseline = 'middle';
+  const sd = new Date(m.startMs);
+  for (let k = 0; k <= 12; k++){
+    const ms = new Date(sd.getFullYear(), sd.getMonth() + k, 1).getTime(); if (ms > m.endMs + DAY) break;
+    const x = Math.round(X(ms)) + .5; ctx.strokeStyle = TK.rule; ctx.globalAlpha = k === 0 ? 1 : .75; ctx.lineWidth = k === 0 ? 2 : 1;
+    line(ctx, x, lay.axisH - 6, x, lay.H - 8); ctx.globalAlpha = 1; ctx.lineWidth = 1;
+    if (k < 12){
+      const d = new Date(ms); ctx.fillStyle = TK.muted; ctx.font = `italic 13px ${BODYF}`;
+      ctx.fillText(d.toLocaleString('en', {month:'short'}) + ((d.getMonth() === 0 || k === 0) ? ' ' + d.getFullYear() : ''), x + 6, lay.axisH / 2 + 1);
+    }
+  }
+  // intensity lane
+  const wy = lay.wTop + lay.wH / 2;
+  let mx = .6; for (let i = 0; i <= m.N; i++) mx = Math.max(mx, m.H[i], m.T[i], m.F[i]);
+  const sc = (lay.wH / 2 - 8) / mx;
+  const area = (arr, sign, color, alpha) => {
+    ctx.beginPath(); ctx.moveTo(lay.L, wy);
+    for (let x = 0; x <= plotW; x++) ctx.lineTo(lay.L + x, wy - sign * lerpArr(arr, x / plotW * m.N) * sc);
+    ctx.lineTo(lay.L + plotW, wy); ctx.closePath(); ctx.fillStyle = color; ctx.globalAlpha = alpha; ctx.fill(); ctx.globalAlpha = 1;
+  };
+  area(m.F, 1, TK.gold, .3); area(m.F, -1, TK.gold, .3); area(m.H, 1, TK.cool, .62); area(m.T, -1, TK.warm, .62);
+  ctx.strokeStyle = TK.ink; ctx.globalAlpha = .35; line(ctx, lay.L, wy + .5, lay.L + plotW, wy + .5); ctx.globalAlpha = 1;
+  ctx.fillStyle = TK.ink; ctx.font = `italic 15px ${BODYF}`; ctx.fillText('Intensity', 14, wy);
+  ctx.font = `10px ${MONOF}`; ctx.fillStyle = TK.cool; ctx.fillText('harmony ↑', 14, wy - 20); ctx.fillStyle = TK.warm; ctx.fillText('tension ↓', 14, wy + 20);
+  for (const e of m.meets){
+    const x = X(e.ms); ctx.fillStyle = TK.gold;
+    ctx.beginPath(); ctx.moveTo(x, wy - 5); ctx.lineTo(x + 5, wy); ctx.lineTo(x, wy + 5); ctx.lineTo(x - 5, wy); ctx.closePath(); ctx.fill();
+    ctx.font = `12px ${GLYPHF}`; ctx.textAlign = 'center'; ctx.fillText(glyph(e.a) + '☌' + VS + glyph(e.b), x, lay.wTop + 8); ctx.textAlign = 'left';
+  }
+  // planet staves
+  ROWS.forEach((b, ri) => {
+    const cy = lay.rTop + ri * lay.rowH + lay.rowH / 2, col = TK[b], pmax = PLANETS[b].max;
+    for (const s of m.shadows) if (s.b === b){
+      const x0 = Math.max(lay.L, X(s.start)), x1 = Math.min(lay.L + plotW, X(s.end));
+      if (x1 > x0){ ctx.fillStyle = TK.band; ctx.fillRect(x0, cy - 17, x1 - x0, 34); }
+    }
+    ctx.strokeStyle = TK.rule; for (let k = -2; k <= 2; k++) line(ctx, lay.L, Math.round(cy + k * 6) + .5, lay.L + plotW, Math.round(cy + k * 6) + .5);
+    const retroRuns = []; let run = null;
+    for (let x = 0; x < plotW; x++){
+      const ms = m.startMs + (x + .5) / plotW * (m.endMs - m.startMs); const s = sample(m.S, b, ms).spd;
+      const a = Math.min(1, Math.abs(s) / pmax); const th = 1.4 + 15 * Math.pow(a, .65);
+      if (s >= 0){ ctx.fillStyle = col; ctx.globalAlpha = .28 + .72 * a; if (run){ retroRuns.push(run); run = null; } }
+      else { ctx.fillStyle = TK.retro; ctx.globalAlpha = .5 + .5 * a; if (!run) run = [x, x]; else run[1] = x; }
+      ctx.fillRect(lay.L + x, cy - th / 2, 1, th);
+    }
+    if (run) retroRuns.push(run); ctx.globalAlpha = 1;
+    ctx.setLineDash([2, 3]); ctx.strokeStyle = col; ctx.lineWidth = 1.2;
+    for (const [a, z] of retroRuns) line(ctx, lay.L + a, cy + .5, lay.L + z + 1, cy + .5);
+    ctx.setLineDash([]); ctx.lineWidth = 1;
+    for (const st of m.stations) if (st.b === b && st.ms >= m.startMs && st.ms <= m.endMs){
+      const x = X(st.ms); fermata(ctx, x, cy - 21, TK.ink);
+      ctx.font = `9.5px ${MONOF}`; ctx.fillStyle = TK.ink; const txt = (st.dir === 'R' ? 'Rx ' : 'D ') + shortDate(st.ms); const tw = ctx.measureText(txt).width;
+      const left = st.dir === 'R' && x - 9 - tw > lay.L; const rightEdge = x + 9 + tw > lay.L + plotW;
+      ctx.fillText(txt, (left || rightEdge) ? x - 9 - tw : x + 9, cy - 16);
+    }
+    ctx.font = `10px ${GLYPHF}`; ctx.fillStyle = TK.muted; ctx.textAlign = 'center';
+    for (const ing of m.ingresses) if (ing.b === b){ const x = X(ing.ms); ctx.fillText(SIGNS[ing.sign] + VS, x, cy + 18); }
+    ctx.textAlign = 'left';
+    ctx.font = `17px ${GLYPHF}`; ctx.fillStyle = col; ctx.fillText(glyph(b), 14, cy);
+    ctx.font = `14px ${BODYF}`; ctx.fillStyle = TK.ink; ctx.fillText(b, 36, cy - 1);
+    const s0 = sample(m.S, b, m.startMs);
+    ctx.font = `10px ${MONOF}`; ctx.fillStyle = TK.muted; ctx.fillText(`${Math.floor(s0.lon % 30)}° ${SIGN_NAMES[Math.floor(s0.lon / 30)].slice(0,3)}`, 36, cy + 13);
+  });
+  // contact lanes
+  const lh = lay.lTop + lay.lHead / 2 + 2;
+  ctx.font = `italic 15px ${BODYF}`; ctx.fillStyle = TK.ink; ctx.fillText('Contacts', 14, lh);
+  ctx.font = `italic 13px ${BODYF}`; ctx.fillStyle = TK.muted; ctx.fillText(`Slow planets crossing ${firstName(m.person)}’s birth chart`, lay.L + 6, lh);
+  if (!m.lanes.length){ ctx.fillText('No close contacts from the slow planets in this window.', lay.L + 6, lh + lay.laneH); }
+  m.lanes.forEach((ln, i) => {
+    const cy = lay.lTop + lay.lHead + i * lay.laneH + lay.laneH / 2; const kc = kindColor(ln.asp.kind);
+    ctx.strokeStyle = TK.rule; ctx.globalAlpha = .6; line(ctx, lay.L, Math.round(cy) + .5, lay.L + plotW, Math.round(cy) + .5); ctx.globalAlpha = 1;
+    ctx.font = `12.5px ${BODYF}`; ctx.fillStyle = TK[ln.t]; ctx.fillText(ln.t, 14, cy);
+    let x0 = 14 + ctx.measureText(ln.t).width + 5;
+    ctx.font = `12px ${GLYPHF}`; ctx.fillStyle = kc; ctx.fillText(ln.asp.g + VS, x0, cy); x0 += ctx.measureText(ln.asp.g + VS).width + 5;
+    ctx.font = `12.5px ${BODYF}`; ctx.fillStyle = TK.ink; ctx.fillText(ln.n, x0, cy);
+    ctx.fillStyle = kc;
+    for (let x = 0; x < plotW; x++){
+      const v = lerpArr(ln.arr, (x + .5) / plotW * m.N); if (v < .01) continue;
+      ctx.globalAlpha = Math.pow(v, .85); ctx.fillRect(lay.L + x, cy - 5, 1, 10);
+    }
+    ctx.globalAlpha = 1;
+    for (const e of m.exacts) if (e.t === ln.t && e.n === ln.n && e.asp.k === ln.asp.k && e.ms >= m.startMs && e.ms <= m.endMs){
+      const x = X(e.ms); ctx.beginPath(); ctx.arc(x, cy, 4, 0, Math.PI * 2); ctx.fillStyle = TK.panel; ctx.fill(); ctx.strokeStyle = TK.ink; ctx.lineWidth = 1.4; ctx.stroke(); ctx.lineWidth = 1;
+    }
+  });
+}
+
+/* ---------- draw: week and month ---------- */
+function drawPlanner(){
+  const c = state.plan; const wk = state.view === 'week'; const W = canvasWidth(wk ? 720 : 680);
+  const single = c.staves.length === 1;
+  const lay = {L:136, R:18, axisH:30, rowH: single ? 120 : 64}; lay.H = lay.axisH + c.staves.length * lay.rowH + 24; lay.W = W; lay.plotW = W - lay.L - lay.R;
+  lay.X = ms => lay.L + (ms - c.startMs) / (c.endMs - c.startMs) * lay.plotW; LAY = lay;
+  const ctx = sizeCanvas(base, W, lay.H); sizeCanvas(over, W, lay.H);
+  ctx.fillStyle = TK.panel; ctx.fillRect(0, 0, W, lay.H);
+  const X = lay.X, dayW = lay.plotW / c.days; ctx.textBaseline = 'middle';
+  for (let d = 0; d <= c.days; d++){
+    const ms = dayStart(c, d); const x = Math.round(X(ms)) + .5;
+    if (d < c.days){
+      const dt = new Date(ms), wd = dt.getDay();
+      if (wd === 0 || wd === 6){ ctx.fillStyle = TK.band; ctx.globalAlpha = .45; ctx.fillRect(x, lay.axisH, dayW, lay.H - lay.axisH - 20); ctx.globalAlpha = 1; }
+      ctx.fillStyle = TK.muted; ctx.textAlign = 'center';
+      if (wk){ ctx.font = `italic 13px ${BODYF}`; ctx.fillText(dt.toLocaleDateString('en-GB', {weekday:'short', day:'numeric'}), x + dayW / 2, lay.axisH / 2 + 1);
+        ctx.strokeStyle = TK.rule; ctx.globalAlpha = .35; for (const hr of [6, 12, 18]){ const hx = Math.round(X(ms + hr * HOUR)) + .5; line(ctx, hx, lay.axisH, hx, lay.H - 20); } ctx.globalAlpha = 1; }
+      else if (dayW >= 15 || d % 2 === 0){ ctx.font = `10px ${MONOF}`; ctx.fillText(String(d + 1), x + dayW / 2, lay.axisH / 2 + 2); }
+      ctx.textAlign = 'left';
+    }
+    ctx.strokeStyle = TK.rule; ctx.globalAlpha = (d === 0 || d === c.days) ? 1 : .7; line(ctx, x, lay.axisH - 4, x, lay.H - 18); ctx.globalAlpha = 1;
+  }
+  c.staves.forEach(([key, name], si) => {
+    const cy = lay.axisH + si * lay.rowH + lay.rowH / 2; const amp = lay.rowH / 2 - 6;
+    const area = (arr, sign, color) => {
+      ctx.beginPath(); ctx.moveTo(lay.L, cy);
+      for (let x = 0; x <= lay.plotW; x++) ctx.lineTo(lay.L + x, cy - sign * squash(lerpArr(arr, x / lay.plotW * (c.n - 1)) * (single ? 1.3 : 1)) * amp);
+      ctx.lineTo(lay.L + lay.plotW, cy); ctx.closePath(); ctx.fillStyle = color; ctx.globalAlpha = .62; ctx.fill(); ctx.globalAlpha = 1;
+    };
+    area(c.H[key], 1, TK.cool); area(c.T[key], -1, TK.warm);
+    ctx.strokeStyle = TK.ink; ctx.globalAlpha = .35; line(ctx, lay.L, cy + .5, lay.L + lay.plotW, cy + .5); ctx.globalAlpha = 1;
+    ctx.font = `${key === 'shared' ? 'italic ' : ''}15px ${BODYF}`; ctx.fillStyle = TK.ink; ctx.fillText(name, 14, cy - 2);
+    if (si === 0){ ctx.font = `10px ${MONOF}`; ctx.fillStyle = TK.cool; ctx.fillText('harmony ↑', 14, cy - 20); ctx.fillStyle = TK.warm; ctx.fillText('tension ↓', 14, cy + 16); }
+    if (key === 'shared'){ ctx.font = `10px ${MONOF}`; ctx.fillStyle = TK.muted; ctx.fillText('composite', 14, cy + 15); }
+    for (const e of c.exacts) if (e.tg.own === key){
+      const x = X(e.ms), r = e.t === 'Moon' ? 2.6 : 3.8; ctx.beginPath(); ctx.arc(x, cy, r, 0, Math.PI * 2); ctx.fillStyle = TK.panel; ctx.fill(); ctx.strokeStyle = kindColor(e.kind); ctx.lineWidth = 1.6; ctx.stroke(); ctx.lineWidth = 1;
+    }
+  });
+  const my = lay.H - 10; ctx.font = `10px ${MONOF}`; ctx.fillStyle = TK.muted; ctx.fillText('moon', 14, my);
+  for (const p of c.phases){ const x = X(p.ms); ctx.strokeStyle = TK.gold; ctx.fillStyle = TK.gold; ctx.lineWidth = 1.3;
+    ctx.beginPath(); ctx.arc(x, my, 5, 0, Math.PI * 2); ctx.stroke();
+    if (p.name === 'New Moon'){ ctx.beginPath(); ctx.arc(x, my, 5, 0, Math.PI * 2); ctx.fill(); }
+    else if (p.name !== 'Full Moon'){ ctx.beginPath(); ctx.arc(x, my, 5, -Math.PI / 2, Math.PI / 2, p.name === 'Last quarter'); ctx.closePath(); ctx.fill(); }
+    ctx.lineWidth = 1; ctx.fillStyle = TK.muted; ctx.fillText(p.name.replace(' Moon', '').replace(' quarter', ' qtr'), x + 8, my); }
+}
+
+/* ---------- overlay / playhead ---------- */
+function drawOver(){
+  if (!LAY) return; const ctx = over.getContext('2d'); const dpr = Math.min(2, window.devicePixelRatio || 1);
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, over.width, over.height); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const m = model(); const tx = LAY.X(now);
+  if (now >= m.startMs && now <= m.endMs){ ctx.strokeStyle = TK.accent; ctx.globalAlpha = .45; ctx.setLineDash([3, 3]); line(ctx, Math.round(tx) + .5, LAY.axisH - 4, Math.round(tx) + .5, LAY.H - 6); ctx.setLineDash([]); ctx.globalAlpha = 1;
+    ctx.font = `10px ${MONOF}`; ctx.fillStyle = TK.accent; ctx.fillText('today', tx + 4, LAY.H - 12); }
+  if (state.view === 'year' && state.solo && ROWS.includes(state.solo)){
+    const ri = ROWS.indexOf(state.solo), y = LAY.rTop + ri * LAY.rowH; ctx.fillStyle = TK.accent; ctx.globalAlpha = .1; ctx.fillRect(4, y + 1, LAY.W - 8, LAY.rowH - 2); ctx.globalAlpha = .7; ctx.strokeStyle = TK.accent; ctx.strokeRect(4.5, y + 1.5, LAY.W - 9, LAY.rowH - 3); ctx.globalAlpha = 1;
+    ctx.font = `10px ${MONOF}`; ctx.fillStyle = TK.accent; ctx.fillText('solo', 104, y + LAY.rowH / 2 + 13);
+  }
+  const x = Math.round(LAY.X(state.ms)) + .5;
+  ctx.strokeStyle = TK.ink; ctx.lineWidth = 2; line(ctx, x, LAY.axisH - 8, x, LAY.H - 4); ctx.lineWidth = 1;
+  ctx.fillStyle = TK.ink; ctx.beginPath(); ctx.moveTo(x - 6, LAY.axisH - 12); ctx.lineTo(x + 6, LAY.axisH - 12); ctx.lineTo(x, LAY.axisH - 4); ctx.closePath(); ctx.fill();
+}
+function msFromX(px){ const m = model(); return clamp(m.startMs + (px - LAY.L) / LAY.plotW * (m.endMs - m.startMs), m.startMs, m.endMs); }
+let dragging = false;
+over.addEventListener('pointerdown', e => {
+  const r = over.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top;
+  if (state.view === 'year' && px < LAY.L - 6 && py >= LAY.rTop && py < LAY.rTop + ROWS.length * LAY.rowH){ const b = ROWS[Math.floor((py - LAY.rTop) / LAY.rowH)]; setSolo(b === state.solo ? null : b); return; }
+  dragging = true; over.setPointerCapture(e.pointerId); scrub(e); });
+over.addEventListener('pointermove', e => { if (dragging) scrub(e); });
+over.addEventListener('pointerup', () => { dragging = false; });
+function scrub(e){
+  const r = over.getBoundingClientRect(); state.ms = msFromX(e.clientX - r.left); lastFire = state.ms;
+  if (state.view !== 'year') syncDay();
+  drawOver(); updateReadout(true);
+}
+
+/* ---------- dial ---------- */
+function drawDial(transits, inner, links, innerLabel){
+  const S = 230; const ctx = sizeCanvas(dial, S, S); const cx = S / 2, cy = S / 2, R = 108;
+  const P = (r, lon) => { const a = lon * Math.PI / 180; return [cx - r * Math.cos(a), cy + r * Math.sin(a)]; };
+  ctx.clearRect(0, 0, S, S);
+  ctx.strokeStyle = TK.rule; ctx.lineWidth = 1;
+  for (const r of [R, R - 20, 62]){ ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke(); }
+  for (let k = 0; k < 12; k++){ const [x0, y0] = P(R - 20, k * 30), [x1, y1] = P(R, k * 30); line(ctx, x0, y0, x1, y1);
+    const [gx, gy] = P(R - 10, k * 30 + 15); ctx.font = `11px ${GLYPHF}`; ctx.fillStyle = TK.muted; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(SIGNS[k] + VS, gx, gy); }
+  for (const l of links){ const [x0, y0] = P(62, l.a), [x1, y1] = P(62, l.b); ctx.strokeStyle = kindColor(l.kind); ctx.globalAlpha = clamp(l.v, .15, 1); ctx.lineWidth = 1 + 1.5 * l.v; line(ctx, x0, y0, x1, y1); }
+  ctx.globalAlpha = 1; ctx.lineWidth = 1;
+  for (const p of inner){ const [x, y] = P(62, p.lon); ctx.fillStyle = TK.ink; ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI * 2); ctx.fill();
+    const [gx, gy] = P(50, p.lon); ctx.font = `11px ${GLYPHF}`; ctx.fillStyle = p.color || TK.muted; ctx.fillText(glyph(p.b), gx, gy); }
+  for (const p of transits){ const [x, y] = P(R - 20, p.lon); ctx.fillStyle = TK[p.b]; ctx.beginPath(); ctx.arc(x, y, 2.6, 0, Math.PI * 2); ctx.fill();
+    const [gx, gy] = P(R - 33, p.lon); ctx.font = `14px ${GLYPHF}`; ctx.globalAlpha = p.retro ? .55 : 1; ctx.fillText(glyph(p.b), gx, gy); ctx.globalAlpha = 1; }
+  ctx.font = `italic 11px ${BODYF}`; ctx.fillStyle = TK.muted; ctx.fillText(innerLabel, cx, cy);
+  ctx.textAlign = 'left';
+}
+
+/* ---------- readout ---------- */
+function yearContacts(ms){
+  const m = state.year; const out = [];
+  for (const t in YT){ const s = sample(m.S, t, ms), s2 = sample(m.S, t, ms + 6 * HOUR);
+    for (const nb in YN){ const b = bestAspect(s.lon, m.natal[nb], YT[t].orb); if (!b) continue;
+      const d2 = norm180(s2.lon - m.natal[nb] - b.sgn * b.asp.a); const v = bump(b.orb, YT[t].orb);
+      out.push({key: t + '|' + nb + '|' + b.asp.k, t, nb, asp: b.asp, orb: b.orb, applying: Math.abs(d2) < b.orb, v, w: YT[t].w * YN[nb], text: `${t} ${b.asp.verb} natal ${nb}`}); } }
+  return out.sort((p, q) => q.v * q.w - p.v * p.w);
+}
+function planContacts(ms){
+  const c = state.plan; const out = [];
+  for (const t in CT){ const s = sample(c.S, t, ms), s2 = sample(c.S, t, ms + HOUR);
+    for (const tg of c.targets){ const b = bestAspect(s.lon, tg.lon, CT[t].orb); if (!b) continue;
+      const d2 = norm180(s2.lon - tg.lon - b.sgn * b.asp.a); const v = bump(b.orb, CT[t].orb);
+      const kind = b.asp.kind === 'fusion' ? (HARSH.has(t) ? 'hard' : 'soft') : b.asp.kind;
+      out.push({key: t + '|' + tg.own + tg.b + '|' + b.asp.k, t, tg, asp: b.asp, kind, orb: b.orb, applying: Math.abs(d2) < b.orb, v, w: CT[t].w * tg.w * DW[t], text: planSentence(t, b.asp, tg, c)}); } }
+  return out.sort((p, q) => q.v * q.w - p.v * p.w);
+}
+function eventText(e){
+  if (e.type === 'station') return `${e.b} stations ${e.dir === 'R' ? 'retrograde' : 'direct'}`;
+  if (e.type === 'meet') return `${e.a} meets ${e.b} in the sky`;
+  if (e.type === 'phase') return `${e.name} in ${SIGN_NAMES[e.sign]}`;
+  if (state.view !== 'year') return planSentence(e.t, e.asp, e.tg, state.plan) + ', exact';
+  return `${e.t} ${e.asp.verb} natal ${e.n}, exact`;
+}
+let lastList = 0, contactsNow = [];
+function updateReadout(force){
+  const m = model(); const ms = state.ms;
+  $('#rDate').textContent = state.view === 'year' ? longDate(ms) : new Date(ms).toLocaleDateString('en-GB', {weekday:'short', day:'numeric', month:'long'}) + ', ' + new Date(ms).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+  $('#rSub').textContent = state.view === 'year' ? `Transits to ${label(m.person)}` : (m.pair ? `${firstName(m.pA)} and ${firstName(m.pB)}, inner ring is the composite` : `Transits to ${label(m.subj === 'A' ? m.pA : m.pB)}, inner ring is the birth chart`);
+  contactsNow = state.view === 'year' ? yearContacts(ms) : planContacts(ms);
+  const transits = ALL.map(b => { const s = sample(m.S, b, ms); return {b, lon: s.lon, retro: s.spd < 0}; });
+  let inner, links;
+  if (state.view === 'year'){
+    inner = Object.keys(YN).map(b => ({b, lon: m.natal[b]}));
+    links = contactsNow.slice(0, 8).map(c => ({a: sample(m.S, c.t, ms).lon, b: m.natal[c.nb], kind: c.asp.kind, v: c.v}));
+  } else {
+    inner = m.inner;
+    links = contactsNow.filter(c => !m.pair || c.tg.own === 'shared').slice(0, 8).map(c => ({a: sample(m.S, c.t, ms).lon, b: c.tg.lon, kind: c.kind, v: c.v}));
+  }
+  drawDial(transits, inner, links, (state.view === 'year' || !m.pair) ? 'natal' : 'together');
+  const t = performance.now();
+  if (force || t - lastList > 160){
+    lastList = t;
+    const ul = $('#active'); const top = contactsNow.slice(0, 6);
+    ul.innerHTML = top.length ? top.map(c => {
+      const k = state.view === 'year' ? c.asp.kind : c.kind;
+      return `<li data-i="${contactsNow.indexOf(c)}" title="Tap to hear this contact"><span>${c.text.replace(c.t, `<span style="color:var(--${c.t.toLowerCase()})">${c.t}</span>`)} <span class="g k-${k}">${c.asp.g}${VS}</span></span><span class="orb">${fmtOrb(c.orb)} ${c.applying ? 'closing' : 'leaving'}</span><span class="meter"><i style="width:${Math.round(c.v * 100)}%;background:var(--${k === 'soft' ? 'cool' : k === 'hard' ? 'warm' : 'gold'})"></i></span></li>`;
+    }).join('') : '<li class="none">Open sky. No close contacts right now.</li>';
+    const nx = m.events.find(e => e.ms > ms);
+    let when = ''; if (nx){ const dd = (nx.ms - ms) / DAY; when = dd < 1 ? `in ${Math.max(1, Math.round(dd * 24))} hour${Math.round(dd * 24) > 1 ? 's' : ''}` : `in ${Math.round(dd)} day${Math.round(dd) === 1 ? '' : 's'}`; }
+    $('#next').textContent = nx ? `Next bell: ${eventText(nx)}, ${shortDate(nx.ms)} (${when})` : 'No more bells in this window.';
+  }
+  if (state.playing || state.holding) audioUpdate(ms);
+  if (force || t - lastList < 5) updateNotes();
+}
+
+/* ---------- calendar and week ---------- */
+function renderCalendar(){
+  const c = state.plan; const d0 = new Date(c.startMs);
+  $('#backdrop').innerHTML = backdropHTML(c, 'month');
+  $('#calHead').innerHTML = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => `<span>${d}</span>`).join('');
+  let html = ''; for (let i = 0; i < (d0.getDay() + 6) % 7; i++) html += '<div class="day blank" aria-hidden="true"></div>';
+  const today = new Date(); const isMonth = today.getFullYear() === d0.getFullYear() && today.getMonth() === d0.getMonth();
+  c.dayInfo.forEach((di, d) => {
+    const r = dayReads(c, d)[0]; const line = r ? planSentence(r.x.t, r.x.asp, r.x.tg, c) : 'Open sky';
+    const cls = ['day']; if (isMonth && today.getDate() === d + 1) cls.push('today'); if (state.selDay === d) cls.push('sel');
+    html += `<button class="${cls.join(' ')}" data-d="${d}" style="--h:${clamp((di.h - di.t * .55) * 1.8, 0, 1).toFixed(3)};--t:${clamp((di.t - di.h * .55) * 1.8, 0, 1).toFixed(3)}" aria-label="${d + 1}: ${di.tag}. ${line}"><span class="dn">${d + 1}</span><span class="tag">${di.tag} <span class="g">☽${SIGNS[di.moonSign]}${VS}</span></span><span class="line">${line}</span></button>`;
+  });
+  $('#cal').innerHTML = html;
+}
+function renderWeek(){
+  const c = state.plan; $('#wBackdrop').innerHTML = backdropHTML(c, 'week');
+  let html = ''; for (let d = 0; d < c.days; d++) html += dayCardHTML(c, d, true);
+  $('#week').innerHTML = html;
+}
+function markSel(){ for (const el of document.querySelectorAll('#cal [data-d], #week [data-d]')) el.classList.toggle('sel', Number(el.dataset.d) === state.selDay); }
+function syncDay(){
+  const c = state.plan; let d = 0; while (d < c.days - 1 && dayStart(c, d + 1) <= state.ms) d++;
+  if (d !== state.selDay){ state.selDay = d; markSel(); renderDayDetail(); }
+}
+function pickDay(d){ state.selDay = d; state.ms = dayStart(state.plan, d) + 12 * HOUR; lastFire = state.ms; markSel(); renderDayDetail(); drawOver(); updateReadout(true); }
+$('#cal').addEventListener('click', e => { const b = e.target.closest('.day[data-d]'); if (b) pickDay(Number(b.dataset.d)); });
+function playDay(d){ const c = state.plan; if (state.playing) setPlaying(false); state.selDay = d; markSel(); renderDayDetail(); state.ms = dayStart(c, d); state.stopAt = dayStart(c, d + 1); setPlaying(true); }
+document.addEventListener('click', e => { const b = e.target.closest('[data-playday]'); if (!b) return; e.stopPropagation(); playDay(Number(b.dataset.playday)); }, true);
+$('#week').addEventListener('click', e => { const b = e.target.closest('.wday[data-d]'); if (b) pickDay(Number(b.dataset.d)); });
+$('#week').addEventListener('keydown', e => { if (e.key !== 'Enter' && e.key !== ' ') return; const b = e.target.closest('.wday[data-d]'); if (b){ e.preventDefault(); pickDay(Number(b.dataset.d)); } });
+function renderDayDetail(){
+  const box = $('#dayDetail');
+  if (state.view !== 'month' || state.selDay == null){ box.hidden = true; return; }
+  box.innerHTML = dayCardHTML(state.plan, state.selDay, false); box.hidden = false;
+}
+
+/* ---------- voices ---------- */
+const NOTES = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
+const voiceList = () => state.view === 'year' ? ROWS : ['Moon','Sun','Mercury','Venus','Mars','Jupiter','Saturn'];
+const SPAN = {Saturn:.55, Neptune:.6, Pluto:.5};
+function freqOf(b, spd){ const r = clamp(spd / PLANETS[b].max, -.6, 1.15); return PLANETS[b].base * Math.pow(2, (SPAN[b] || .9) * (r - 1)); }
+function pitchOf(b, ms){ const s = sample(model().S, b, ms).spd; return {f: freqOf(b, s), retro: s < 0}; }
+function noteName(f){ const n = Math.round(12 * Math.log2(f / 440) + 69); return NOTES[((n % 12) + 12) % 12] + (Math.floor(n / 12) - 1); }
+function renderMixer(){
+  const list = voiceList();
+  if (state.solo && !list.includes(state.solo)){ state.solo = null; state.holding = false; }
+  $('#mixer').innerHTML = list.map(b => `<button class="chip" data-b="${b}" aria-pressed="${state.solo === b}"><span class="g" style="color:var(--${b.toLowerCase()})">${glyph(b)}</span>${b}<span class="inst">${VOICE[b].word}</span><span class="note" data-note="${b}"></span></button>`).join('')
+    + `<button class="chip all" data-b="" aria-pressed="${!state.solo}">All voices</button>`;
+  updateNotes();
+}
+function updateNotes(){
+  for (const el of document.querySelectorAll('[data-note]')){ const p = pitchOf(el.dataset.note, state.ms); el.textContent = noteName(p.f) + (p.retro ? ' Rx' : ''); }
+}
+function setSolo(b){
+  state.solo = b || null;
+  for (const el of document.querySelectorAll('.chip')) el.setAttribute('aria-pressed', String((el.dataset.b || null) === state.solo));
+  if (state.solo){ audioInit(); if (!state.playing) state.holding = true; audioUpdate(state.ms); }
+  else { state.holding = false; if (state.playing) audioUpdate(state.ms); else audioHush(); }
+  drawOver();
+}
+$('#mixer').addEventListener('click', e => { const c = e.target.closest('.chip'); if (!c) return; const b = c.dataset.b; setSolo(b && b !== state.solo ? b : null); });
+
+/* ---------- audio ---------- */
+const AU = {ctx: null, voices: {}, chords: new Map()};
+function audioInit(){
+  if (AU.ctx){ if (AU.ctx.state === 'suspended') AU.ctx.resume(); return; }
+  const C = AU.ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const comp = C.createDynamicsCompressor(); comp.threshold.value = -18; comp.connect(C.destination);
+  AU.master = C.createGain(); AU.master.gain.value = .9; AU.master.connect(comp);
+  const len = Math.floor(C.sampleRate * 3.4), buf = C.createBuffer(2, len, C.sampleRate);
+  for (let ch = 0; ch < 2; ch++){ const d = buf.getChannelData(ch); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.8); }
+  const verb = C.createConvolver(); verb.buffer = buf; const wet = C.createGain(); wet.gain.value = .45; verb.connect(wet); wet.connect(AU.master);
+  AU.bus = C.createGain(); AU.bus.connect(AU.master); AU.bus.connect(verb);
+}
+/* each planet is its own instrument, register and place in the stereo field */
+const VOICE = {
+  Sun:{kind:'horn', word:'horn', pan:0, lvl:.5, cut:1800},
+  Moon:{kind:'flute', word:'flute', pan:-.25, lvl:1, cut:3200},
+  Mercury:{kind:'ticks', word:'quick ticks', pan:.55, lvl:1.1, cut:4000},
+  Venus:{kind:'glass', word:'glass bells', pan:-.5, lvl:.9, cut:5000},
+  Mars:{kind:'growl', word:'growl', pan:.35, lvl:.55, cut:1300},
+  Jupiter:{kind:'organ', word:'organ', pan:-.15, lvl:.7, cut:3000},
+  Saturn:{kind:'cello', word:'low cello', pan:.15, lvl:.75, cut:1100},
+  Uranus:{kind:'trill', word:'electric trill', pan:.75, lvl:.35, cut:2600},
+  Neptune:{kind:'haze', word:'haze', pan:-.7, lvl:.7, cut:900},
+  Pluto:{kind:'heartbeat', word:'heartbeat', pan:-.05, lvl:1.2, cut:420}
+};
+let NOISE = null;
+function noiseBuf(){ if (NOISE) return NOISE; const C = AU.ctx, len = C.sampleRate * 2, b = C.createBuffer(1, len, C.sampleRate), d = b.getChannelData(0); for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1; return NOISE = b; }
+function distCurve(k){ const n = 1024, c = new Float32Array(n); for (let i = 0; i < n; i++){ const x = i * 2 / n - 1; c[i] = (1 + k) * x / (1 + k * Math.abs(x)); } return c; }
+function pulseRate(b, r){ const a = Math.abs(r); return b === 'Mercury' ? 3 + 7 * a : b === 'Mars' ? 1.5 + 4 * a : .7 + .9 * a; }
+function voice(b){
+  let v = AU.voices[b]; if (v) return v; const C = AU.ctx, D = VOICE[b], f = PLANETS[b].base;
+  const out = C.createGain(); out.gain.value = 0; const pan = C.createStereoPanner(); pan.pan.value = D.pan; out.connect(pan); pan.connect(AU.bus);
+  const lp = C.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = D.cut; lp.Q.value = .7;
+  const amp = C.createGain(); amp.gain.value = 1; lp.connect(amp); amp.connect(out);
+  const oscs = []; let pulse = null, noiseBp = null;
+  const osc = (type, mult, level, det) => { const o = C.createOscillator(); o.type = type; o.frequency.value = f * mult; o.detune.value = det || 0; const g = C.createGain(); g.gain.value = level; o.connect(g); o.start(); oscs.push({o, mult}); return g; };
+  const lfo = (type, rate, depth, target) => { const l = C.createOscillator(); l.type = type; l.frequency.value = rate; const g = C.createGain(); g.gain.value = depth; l.connect(g); g.connect(target); l.start(); return l; };
+  const noise = (level, freq, q) => { const n = C.createBufferSource(); n.buffer = noiseBuf(); n.loop = true; const bp = C.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = freq; bp.Q.value = q; const g = C.createGain(); g.gain.value = level; n.connect(bp); bp.connect(g); n.start(); return {g, bp}; };
+  switch (D.kind){
+    case 'horn': osc('sawtooth', 1, .45).connect(lp); osc('sawtooth', 1, .35, 8).connect(lp); osc('sine', .5, .35).connect(lp); lp.Q.value = 3; lfo('sine', .25, 500, lp.frequency); break;
+    case 'flute': { osc('sine', 1, .8).connect(lp); osc('triangle', 2, .1).connect(lp); for (const x of oscs) lfo('sine', 5.2, 10, x.o.detune); const n = noise(.12, f, 5); n.g.connect(lp); noiseBp = n.bp; break; }
+    case 'ticks': osc('triangle', 1, .7).connect(lp); osc('sine', 3, .2).connect(lp); amp.gain.value = .5; pulse = lfo('sawtooth', 6, -.5, amp.gain); break;
+    case 'glass': osc('sine', 1, .55).connect(lp); osc('sine', 1, .45, 7).connect(lp); osc('sine', 2.01, .18).connect(lp); osc('sine', 3.02, .08).connect(lp); amp.gain.value = .75; lfo('sine', 3.2, .25, amp.gain); break;
+    case 'growl': { const sh = C.createWaveShaper(); sh.curve = distCurve(12); osc('sawtooth', 1, .6).connect(sh); osc('square', .5, .35).connect(sh); sh.connect(lp); lp.Q.value = 5; amp.gain.value = .55; pulse = lfo('sawtooth', 3, -.45, amp.gain); break; }
+    case 'organ': for (const [m, l] of [[1, .5], [2, .35], [3, .25], [4, .18], [6, .1], [8, .06]]) osc('sine', m, l).connect(lp); amp.gain.value = .85; lfo('sine', 6.5, .14, amp.gain); break;
+    case 'cello': { osc('sawtooth', 1, .6).connect(lp); osc('sawtooth', 1, .4, -6).connect(lp); lp.Q.value = 2; amp.gain.value = .65; lfo('sine', .18, .35, amp.gain); for (const x of oscs) lfo('sine', 4.5, 7, x.o.detune); break; }
+    case 'trill': { osc('square', 1, .4).connect(lp); for (const x of oscs) lfo('square', 7, 100, x.o.detune); break; }
+    case 'haze': { for (const d of [-14, 0, 13]) osc('sawtooth', 1, .3, d).connect(lp); const n = noise(.25, 700, .6); n.g.connect(lp); lfo('sine', .07, 450, lp.frequency); break; }
+    case 'heartbeat': osc('sine', 1, .9).connect(lp); osc('sawtooth', 1, .4).connect(lp); osc('sine', 2, .35).connect(lp); amp.gain.value = .5; pulse = lfo('sawtooth', 1.1, -.5, amp.gain); break;
+  }
+  return AU.voices[b] = {out, lp, oscs, pulse, noiseBp, D};
+}
+function audioUpdate(ms){
+  if (!AU.ctx) return; const C = AU.ctx, t = C.currentTime; const m = model();
+  const list = voiceList();
+  const gain = state.layers.voices ? .24 / list.length : 0;
+  for (const b in AU.voices) if (!list.includes(b)) AU.voices[b].out.gain.setTargetAtTime(0, t, .2);
+  for (const b of list){
+    const v = voice(b); const s = sample(m.S, b, ms).spd; const r = clamp(s / PLANETS[b].max, -.6, 1.15); const f = freqOf(b, s);
+    for (const x of v.oscs) x.o.frequency.setTargetAtTime(f * x.mult, t, .06);
+    if (v.noiseBp) v.noiseBp.frequency.setTargetAtTime(f, t, .06);
+    v.lp.frequency.setTargetAtTime(s < 0 ? v.D.cut * .35 : v.D.cut, t, .2);
+    if (v.pulse) v.pulse.frequency.setTargetAtTime(pulseRate(b, r), t, .2);
+    v.out.gain.setTargetAtTime((state.solo ? (b === state.solo ? .2 : 0) : gain) * v.D.lvl, t, .15);
+  }
+  const keep = new Set();
+  for (const c of contactsNow.slice(0, 4)){
+    keep.add(c.key); let ch = AU.chords.get(c.key);
+    let f1 = PLANETS[c.t].base; while (f1 < 180) f1 *= 2; while (f1 > 420) f1 /= 2;
+    const kind = c.kind || c.asp.kind, hard = kind === 'hard';
+    /* easy aspects wobble and then lock into a pure interval; hard ones rub harder the closer they get and never settle */
+    const f2 = hard ? f1 * c.asp.ratio + 3 + 18 * c.v : f1 * c.asp.ratio + c.orb * 2.4;
+    if (!ch){ ch = chordPair(f1, f2, hard); AU.chords.set(c.key, ch); }
+    ch.dead = 0; ch.o1.frequency.setTargetAtTime(f1, t, .05); ch.o2.frequency.setTargetAtTime(f2, t, .05);
+    if (ch.o3){ ch.o3.frequency.setTargetAtTime(f1 * 16 / 15 + 2 * c.v, t, .05); ch.g3.gain.setTargetAtTime(.4 * c.v, t, .12); ch.lp.frequency.setTargetAtTime(900 + 1800 * c.v, t, .1); }
+    ch.g.gain.setTargetAtTime(state.layers.chords && !state.solo && state.playing ? (hard ? .045 : .07) * c.v + .012 : 0, t, .12);
+  }
+  moodUpdate(ms);
+  for (const [k, ch] of AU.chords) if (!keep.has(k)){ ch.g.gain.setTargetAtTime(0, t, .25); if (++ch.dead > 120){ try { ch.o1.stop(); ch.o2.stop(); if (ch.o3) ch.o3.stop(); } catch(e){} AU.chords.delete(k); } }
+}
+/* soft aspects: pure sine intervals. hard aspects: buzzy sawtooth intervals plus a minor-second rub, so they grind */
+function chordPair(f1, f2, hard){
+  const C = AU.ctx; const o1 = C.createOscillator(), o2 = C.createOscillator(), lp = C.createBiquadFilter(), g = C.createGain();
+  o1.type = o2.type = hard ? 'sawtooth' : 'sine'; lp.type = 'lowpass'; lp.frequency.value = hard ? 900 : 4000; g.gain.value = 0;
+  o1.frequency.value = f1; o2.frequency.value = f2; o1.connect(lp); o2.connect(lp); lp.connect(g); g.connect(AU.bus); o1.start(); o2.start();
+  const ch = {o1, o2, lp, g, dead: 0};
+  if (hard){ const o3 = C.createOscillator(), g3 = C.createGain(); o3.type = 'sawtooth'; o3.frequency.value = f1 * 16 / 15; g3.gain.value = 0; o3.connect(g3); g3.connect(lp); o3.start(); ch.o3 = o3; ch.g3 = g3; }
+  return ch;
+}
+const INTERVAL = {conj:'unison', sext:'major sixth', tri:'perfect fifth', sq:'tritone', opp:'minor ninth'};
+/* exact moments: easy aspects ring a major chord that resolves; hard ones strike a clashing cluster that hangs */
+function chime(f, kind, gain){
+  if (kind === 'soft'){ bell(f, 'soft', gain * .7); setTimeout(() => bell(f * 5 / 4, 'soft', gain * .55), 110); setTimeout(() => bell(f * 3 / 2, 'soft', gain * .55), 220); setTimeout(() => bell(f * 2, 'soft', gain * .4), 330); }
+  else if (kind === 'hard'){ bell(f, 'hard', gain * .6); bell(f * 16 / 15, 'hard', gain * .5); bell(f * 45 / 32, 'hard', gain * .45); }
+  else bell(f, 'fusion', gain);
+}
+function audition(f1, asp, orb, kind){
+  audioInit(); const C = AU.ctx, t = C.currentTime + .03; kind = kind || asp.kind; const hard = kind === 'hard';
+  const f2 = f1 * asp.ratio; const ch = chordPair(f1, hard ? f2 + 3 : f2 + Math.max(orb, .4) * 2.4, hard);
+  const peak = hard ? .11 : .16;
+  ch.g.gain.setValueAtTime(0, t); ch.g.gain.linearRampToValueAtTime(peak, t + .15);
+  if (hard){
+    /* tension builds toward exact and is still unresolved when it fades */
+    ch.o2.frequency.setValueAtTime(f2 + 3, t); ch.o2.frequency.linearRampToValueAtTime(f2 + 21, t + 3.4);
+    ch.g3.gain.setValueAtTime(0, t); ch.g3.gain.linearRampToValueAtTime(.45, t + 3.4);
+    ch.lp.frequency.setValueAtTime(900, t); ch.lp.frequency.linearRampToValueAtTime(2700, t + 3.4);
+    ch.g.gain.setValueAtTime(peak, t + 4.6); ch.g.gain.linearRampToValueAtTime(0, t + 6);
+  } else {
+    ch.o2.frequency.setValueAtTime(f2 + Math.max(orb, .4) * 2.4, t); ch.o2.frequency.setValueAtTime(f2 + Math.max(orb, .4) * 2.4, t + 1.4); ch.o2.frequency.linearRampToValueAtTime(f2, t + 3.4);
+    ch.g.gain.setValueAtTime(peak, t + 4.2); ch.g.gain.linearRampToValueAtTime(0, t + 5);
+  }
+  for (const o of [ch.o1, ch.o2, ch.o3]) if (o) o.stop(t + 6.1);
+  const wasBells = state.layers.bells; state.layers.bells = true; setTimeout(() => { chime(f1 * 2, kind, .14); state.layers.bells = wasBells; }, 3400);
+}
+/* a soft chord underneath everything: major when the sky is kind, minor as tension grows, diminished and clustered at the worst */
+function moodInit(){
+  if (AU.mood) return; const C = AU.ctx; const lp = C.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 800; const g = C.createGain(); g.gain.value = 0; lp.connect(g); g.connect(AU.bus);
+  const mk = (f, type) => { const o = C.createOscillator(); o.type = type || 'triangle'; o.frequency.value = f; const gg = C.createGain(); gg.gain.value = 0; o.connect(gg); gg.connect(lp); o.start(); return gg; };
+  AU.mood = {g, lp, root: mk(130.81, 'sine'), low: mk(65.41, 'sine'), maj3: mk(164.81), min3: mk(155.56), p5: mk(196), d5: mk(185), m2: mk(138.59)};
+}
+function moodAt(ms){
+  const m = model(); let h = 0, tn = 0;
+  if (state.view === 'year'){ const f = (ms - m.startMs) / DAY; h = lerpArr(m.H, f); tn = lerpArr(m.T, f); }
+  else { const f = (ms - m.startMs) / (DAY / m.PER); for (const [k] of m.staves){ h += lerpArr(m.H[k], f); tn += lerpArr(m.T[k], f); } }
+  return {h, tn};
+}
+function moodUpdate(ms){
+  moodInit(); const M = AU.mood, t = AU.ctx.currentTime, k = .6;
+  const {h, tn} = moodAt(ms); const tot = h + tn; const mood = (h - tn) / (tot + .15);
+  const on = state.layers.mood && !state.solo && state.playing;
+  M.g.gain.setTargetAtTime(on ? .045 + .05 * Math.min(1, tot) : 0, t, k);
+  M.root.gain.setTargetAtTime(.5, t, k); M.low.gain.setTargetAtTime(.35, t, k);
+  M.maj3.gain.setTargetAtTime(.45 * clamp(mood * 1.6, 0, 1), t, k);
+  M.min3.gain.setTargetAtTime(.45 * clamp(-mood * 1.6, 0, 1), t, k);
+  const dim = clamp((-mood - .35) / .5, 0, 1);
+  M.p5.gain.setTargetAtTime(.4 * (1 - dim), t, k); M.d5.gain.setTargetAtTime(.4 * dim, t, k);
+  M.m2.gain.setTargetAtTime(.22 * clamp((-mood - .6) / .35, 0, 1), t, k);
+  M.lp.frequency.setTargetAtTime(500 + 700 * (mood + 1) / 2, t, k);
+  return mood;
+}
+function renderAspChips(){
+  $('#aspChips').innerHTML = ASPECTS.map(a => `<button class="chip" data-asp="${a.k}"><span class="g k-${a.kind}">${a.g}${VS}</span>${a.name === 'opposite' ? 'opposition' : a.name === 'conjunct' ? 'conjunction' : a.name}<span class="note">${INTERVAL[a.k]}</span></button>`).join('');
+}
+$('#aspChips').addEventListener('click', e => { const b = e.target.closest('[data-asp]'); if (!b) return; const a = ASPECTS.find(x => x.k === b.dataset.asp); audition(220, a, 3, a.kind); ticker(`${a.g} ${INTERVAL[a.k]}: ${a.kind === 'soft' ? 'wobbles, then settles into harmony' : a.kind === 'hard' ? 'a rub that tightens and never settles' : 'two voices becoming one'}`); });
+$('#active').addEventListener('click', e => { const li = e.target.closest('li[data-i]'); if (!li) return; const c = contactsNow[Number(li.dataset.i)]; if (!c) return;
+  let f1 = PLANETS[c.t].base; while (f1 < 180) f1 *= 2; while (f1 > 420) f1 /= 2; audition(f1, c.asp, c.orb, c.kind || c.asp.kind); ticker(c.text + `: ${INTERVAL[c.asp.k]}`); });
+function audioHush(){
+  if (!AU.ctx) return; const t = AU.ctx.currentTime;
+  for (const b in AU.voices) AU.voices[b].out.gain.setTargetAtTime(0, t, .25);
+  for (const [, ch] of AU.chords) ch.g.gain.setTargetAtTime(0, t, .25);
+  if (AU.mood) AU.mood.g.gain.setTargetAtTime(0, t, .3);
+}
+function bell(freq, kind, gain){
+  if (!AU.ctx || !state.layers.bells) return; const C = AU.ctx, t = C.currentTime;
+  const P = {soft:[[1,1],[2,.45],[3.01,.22],[4.02,.1]], hard:[[1,1],[2.41,.5],[3.93,.3],[5.43,.15]], fusion:[[1,1],[2.76,.5],[5.4,.28],[8.93,.12]], gong:[[1,1],[1.49,.6],[2.03,.35],[2.74,.2]]}[kind];
+  const dur = kind === 'gong' ? 5.5 : 3.6; const out = C.createGain(); out.gain.value = gain; out.connect(AU.bus);
+  P.forEach(([p, a], i) => { const o = C.createOscillator(), g = C.createGain(); o.type = 'sine'; o.frequency.value = freq * p;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(a, t + .006); g.gain.exponentialRampToValueAtTime(.0001, t + dur / (1 + i * .45));
+    o.connect(g); g.connect(out); o.start(t); o.stop(t + dur + .1); });
+}
+let tickerTimer = null;
+function ticker(text){ const el = $('#ticker'); el.textContent = '♪ ' + text; el.style.opacity = 1; clearTimeout(tickerTimer); tickerTimer = setTimeout(() => { el.style.opacity = .35; }, 2600); }
+let lastFire = state.ms;
+function fireEvents(a, b){
+  for (const e of model().events){ if (e.ms <= a || e.ms > b) continue;
+    if (e.type === 'phase'){ bell(e.name === 'Full Moon' || e.name === 'New Moon' ? 196 : 294, 'fusion', .13); }
+    else if (e.type === 'station'){ let f = PLANETS[e.b].base / 2; while (f < 70) f *= 2; bell(f, 'gong', .2); }
+    else if (e.type === 'meet'){ let f = PLANETS[e.a].base * 2; while (f > 900) f /= 2; bell(f, 'fusion', .16); }
+    else { let f = PLANETS[e.t].base * 2; while (f < 260) f *= 2; while (f > 900) f /= 2; const k = state.view !== 'year' ? e.kind : e.asp.kind; chime(f, k, e.t === 'Moon' ? .07 : .15); }
+    ticker(eventText(e));
+  }
+}
+
+/* ---------- transport ---------- */
+let lastT = 0;
+function setPlaying(on){
+  state.playing = on; $('#playIco').textContent = on ? '❚❚' : '▶︎'; $('#playTxt').textContent = on ? 'Pause' : 'Play';
+  state.holding = false;
+  if (on){ audioInit(); const m = model(); if (!state.stopAt && state.ms >= m.endMs - DAY * .2) state.ms = m.startMs; lastFire = state.ms; lastT = performance.now(); requestAnimationFrame(loop); }
+  else { audioHush(); state.stopAt = null; }
+}
+function loop(ts){
+  if (!state.playing) return; const dt = Math.min(.1, (ts - lastT) / 1000); lastT = ts;
+  const m = model(); const prev = state.ms; const end = state.stopAt || m.endMs; state.ms = Math.min(end, state.ms + dt * (state.stopAt ? DAYRATE[state.speed] : RATES[state.view][state.speed]) * DAY);
+  fireEvents(prev, state.ms); lastFire = state.ms;
+  if (state.view !== 'year') syncDay();
+  drawOver(); updateReadout(false);
+  keepPlayheadVisible();
+  if (state.ms >= end){ setPlaying(false); return; }
+  requestAnimationFrame(loop);
+}
+function keepPlayheadVisible(){ const sc = $('#scroll'); if (sc.scrollWidth <= sc.clientWidth) return; const x = LAY.X(state.ms); if (x < sc.scrollLeft + LAY.L || x > sc.scrollLeft + sc.clientWidth - 40) sc.scrollLeft = Math.max(0, x - LAY.L - 20); }
+$('#play').addEventListener('click', () => { state.stopAt = null; setPlaying(!state.playing); });
+$('#speed').addEventListener('change', e => { state.speed = e.target.value; });
+for (const k of ['voices', 'chords', 'bells', 'mood']) $('#L-' + k).addEventListener('change', e => { state.layers[k] = e.target.checked; });
+
+/* ---------- views ---------- */
+function planRange(){
+  if (state.view === 'week'){ const d = new Date(state.weekStart); return [state.weekStart, new Date(d.getFullYear(), d.getMonth(), d.getDate() + 7).getTime()]; }
+  const d = new Date(state.monthStart); return [state.monthStart, new Date(d.getFullYear(), d.getMonth() + 1, 1).getTime()];
+}
+function rebuild(){
+  const ppl = state.people;
+  if (state.view === 'year') state.year = buildYear(ppl[state.chartOf], state.yearStart);
+  else { const [a, b] = planRange(); state.plan = buildPlanner(state.subject, a, b, state.view === 'week' ? 24 : 8, state.view === 'week'); }
+  const m = model(); if (state.ms < m.startMs || state.ms > m.endMs) state.ms = (now >= m.startMs && now <= m.endMs) ? now : m.startMs + 12 * HOUR;
+  state.selDay = null; render();
+}
+function render(){
+  readTokens();
+  const v = state.view, yr = v === 'year';
+  $('#yearCtl').hidden = !yr; $('#planCtl').hidden = yr; $('#calendarWrap').hidden = v !== 'month'; $('#weekWrap').hidden = v !== 'week';
+  for (const t of ['year', 'week', 'month']) $('#tab-' + t).setAttribute('aria-selected', String(v === t));
+  if (yr) drawYear();
+  else {
+    drawPlanner(); const c = state.plan;
+    const a = new Date(c.startMs), z = new Date(c.endMs - DAY);
+    $('#periodLabel').textContent = v === 'month' ? a.toLocaleDateString('en-GB', {month:'long', year:'numeric'})
+      : (a.getMonth() === z.getMonth() ? `${a.getDate()} to ${z.getDate()} ${z.toLocaleDateString('en-GB', {month:'long'})}` : `${a.getDate()} ${a.toLocaleDateString('en-GB', {month:'short'})} to ${z.getDate()} ${z.toLocaleDateString('en-GB', {month:'short'})}`);
+    if (state.selDay == null){ state.selDay = -1; syncDay(); }
+    if (v === 'month') renderCalendar(); else renderWeek();
+    markSel();
+  }
+  renderMixer(); renderDayDetail(); drawOver(); updateReadout(true);
+}
+function switchView(v){
+  if (state.view === v) return; if (state.playing) setPlaying(false);
+  state.view = v;
+  if (v === 'week') state.weekStart = mondayOf(state.ms);
+  if (v === 'month') state.monthStart = monthOf(state.ms);
+  if (v === 'year' && !(state.ms >= state.yearStart && state.ms <= state.yearStart + 365 * DAY)){ state.yearStart = monthOf(state.ms); $('#startMonth').value = ymOf(state.yearStart); }
+  if (v === 'year' && state.year) render(); else rebuild();
+}
+for (const t of ['year', 'week', 'month']) $('#tab-' + t).addEventListener('click', () => switchView(t));
+const ymOf = ms => { const d = new Date(ms); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; };
+$('#startMonth').addEventListener('change', e => { const [y, m] = e.target.value.split('-').map(Number); if (!y) return; state.yearStart = new Date(y, m - 1, 1).getTime(); state.ms = state.yearStart; setPlaying(false); rebuild(); });
+$('#chartOf').addEventListener('change', e => { state.chartOf = e.target.value; rebuild(); });
+$('#subject').addEventListener('change', e => { state.subject = e.target.value; setPlaying(false); rebuild(); });
+const shiftP = k => {
+  setPlaying(false);
+  if (state.view === 'week'){ const d = new Date(state.weekStart); state.weekStart = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 7 * k).getTime(); state.ms = state.weekStart + 12 * HOUR; }
+  else { const d = new Date(state.monthStart); state.monthStart = new Date(d.getFullYear(), d.getMonth() + k, 1).getTime(); state.ms = state.monthStart + 12 * HOUR; }
+  rebuild();
+};
+$('#prevP').addEventListener('click', () => shiftP(-1));
+$('#nextP').addEventListener('click', () => shiftP(1));
+
+/* ---------- people ---------- */
+let editing = null;
+const TZ_OPTS = (() => { const o = []; for (let h = -12; h <= 14; h += .5){ if (h % 1 && ![-9.5,-3.5,3.5,4.5,5.5,6.5,9.5,10.5].includes(h)) continue; o.push(h); } return o; })();
+const tzLabel = h => `UTC${h >= 0 ? '+' : '−'}${Math.floor(Math.abs(h))}${Math.abs(h) % 1 ? ':30' : ''}`;
+function birthLine(p){ const [y, m, d] = p.date.split('-').map(Number); return `Born ${new Date(y, m - 1, d).toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'})} at ${p.time || '12:00'} (${tzLabel(Number(p.tz))})`; }
+function placements(p){ const n = natalOf(p); return ALL.map(b => `<span class="pl" title="${b} ${Math.floor(n[b] % 30)}° ${SIGN_NAMES[Math.floor(n[b] / 30)]}"><span class="g" style="color:var(--${b.toLowerCase()})">${glyph(b)}</span>${Math.floor(n[b] % 30)}°<span class="g">${SIGNS[Math.floor(n[b] / 30)]}${VS}</span></span>`).join(''); }
+function renderPeople(){
+  const P = state.people;
+  $('#peopleNote').textContent = (P.A.sample || P.B.sample) ? 'Anyone marked sample is invented. Tap Edit to put in a real person. Everything on the page follows from these two charts.' : 'Everything on the page follows from these two charts.';
+  $('#pcards').innerHTML = ['A', 'B'].map(k => { const p = P[k]; return `<article class="pcard">
+    <div class="pc-top"><h3>${esc(firstName(p))}${p.sample ? ' <span class="badge">sample</span>' : ''}</h3><button class="linkbtn" data-edit="${k}">${editing === k ? 'Close' : 'Edit'}</button></div>
+    <p class="pc-birth">${esc(birthLine(p))}</p><p class="pc-pl">${placements(p)}</p>
+    ${editing === k ? `<form class="pform" data-k="${k}">
+      <label for="f-name">Name</label><input id="f-name" type="text" maxlength="24" value="${esc(p.name)}">
+      <label for="f-date">Birth date</label><input id="f-date" type="date" value="${esc(p.date)}" required>
+      <label for="f-time">Birth time</label><input id="f-time" type="time" value="${esc(p.time || '12:00')}">
+      <label for="f-tz">Clock offset</label><select id="f-tz">${TZ_OPTS.map(h => `<option value="${h}"${h === Number(p.tz) ? ' selected' : ''}>${tzLabel(h)}</option>`).join('')}</select>
+      <p class="note">Use the clock offset at the birth place on that day. Brazil is UTC−3 (−2 in old summer time), New York UTC−5 (−4 in summer), London UTC+0 (+1 in summer). No birth time? Leave 12:00; the Moon may be off by a few degrees.</p>
+      <div class="row"><button class="save" type="submit">Save these stars</button></div>
+    </form>` : ''}
+  </article>`; }).join('');
+}
+function fillSelects(){
+  const P = state.people;
+  $('#chartOf').innerHTML = `<option value="A">${esc(label(P.A))}</option><option value="B">${esc(label(P.B))}</option>`; $('#chartOf').value = state.chartOf;
+  $('#subject').innerHTML = `<option value="A">${esc(label(P.A))}</option><option value="B">${esc(label(P.B))}</option><option value="AB">${esc(firstName(P.A))} and ${esc(firstName(P.B))} together</option>`; $('#subject').value = state.subject;
+}
+$('#pcards').addEventListener('click', e => { const b = e.target.closest('[data-edit]'); if (!b) return; editing = editing === b.dataset.edit ? null : b.dataset.edit; renderPeople(); if (editing) $('#f-name').focus(); });
+$('#pcards').addEventListener('submit', e => {
+  e.preventDefault(); const k = e.target.dataset.k; const old = state.people[k];
+  const p = {name: $('#f-name').value.trim() || old.name, date: $('#f-date').value || old.date, time: $('#f-time').value || '12:00', tz: Number($('#f-tz').value)};
+  p.sample = !!old.sample && p.name === old.name && p.date === old.date && p.time === old.time && p.tz === Number(old.tz);
+  state.people = {...state.people, [k]: p}; savePeople(state.people); editing = null;
+  renderPeople(); fillSelects(); setPlaying(false); state.year = null; state.plan = null; rebuild();
+});
+
+/* ---------- boot ---------- */
+renderPeople(); fillSelects(); renderAspChips(); $('#startMonth').value = ymOf(state.yearStart);
+rebuild();
+if (location.hash === '#couple'){ state.subject = 'AB'; fillSelects(); switchView('month'); }
+else if (location.hash === '#week' || location.hash === '#month') switchView(location.hash.slice(1));
+let rsT = null; new ResizeObserver(() => { clearTimeout(rsT); rsT = setTimeout(render, 120); }).observe($('#scroll'));
+const rerender = () => render();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', rerender);
+new MutationObserver(rerender).observe(document.documentElement, {attributes: true, attributeFilter: ['data-theme']});
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(rerender);
+})();
+</script>
+</body></html>
